@@ -1,8 +1,8 @@
-# genmedia CLI agent guide
+# kvidai CLI agent guide
 
 ## Scope
 
-These instructions apply to the repository root unless a deeper `AGENTS.md` overrides them. The `web/` app has its own guidance in `web/AGENTS.md`.
+These instructions apply to the repository root unless a deeper `AGENTS.md` overrides them.
 
 ## Repository shape
 
@@ -11,13 +11,12 @@ These instructions apply to the repository root unless a deeper `AGENTS.md` over
 - `src/lib/` contains shared runtime helpers for config, API access, output, and UI.
 - `skills/` contains bundled skills. `skills/index.json` is generated from those directories.
 - `scripts/` contains build and maintenance scripts.
-- `web/` is a separate app with additional rules.
 
 ## Working conventions
 
 - Keep changes small and focused. Match the existing TypeScript + ESM style.
 - Prefer updating shared helpers over duplicating logic across commands.
-- Use `bun` for repo scripts and local execution. Do not introduce `npm` or `pnpm` workflows here unless the repo already requires them.
+- Use `bun` for repo scripts and local execution.
 - Follow Biome formatting conventions already present in the codebase.
 
 ## CLI command conventions
@@ -37,14 +36,17 @@ These instructions apply to the repository root unless a deeper `AGENTS.md` over
 
 ## API and config
 
+- API base URL: `https://api.kvid.ai` (overridable via `KVIDAI_BASE_URL`).
+- Auth header: `api-key: <KVIDAI_API_KEY>`.
 - Reuse helpers from `src/lib/api.ts`, `src/lib/config.ts`, and `src/lib/env.ts` instead of reimplementing headers, auth, or config loading.
+- Config is stored in `~/.kvidai/config.json`.
 - Keep environment-variable behavior documented and consistent with help text and README examples.
 - When changing command behavior, update the JSON help schema in `src/index.ts` if the public interface changes.
 
 ## Self-update
 
 - All update logic lives in `src/lib/updater.ts`. The `update` command and the background check in `src/index.ts` both go through it — don't reimplement download/checksum/swap logic elsewhere.
-- Startup in `src/index.ts` runs `preSwapPendingUpdate()` first (atomic swap of a staged `.new` binary) and may fire `maybeTriggerBackgroundUpdate()` (detached subprocess, rate-limited to once per hour, TTY-only). Respect `GENMEDIA_NO_UPDATE=1` and `config.autoUpdate` in any update-related code.
+- Startup in `src/index.ts` runs `preSwapPendingUpdate()` first (atomic swap of a staged `.new` binary) and may fire `maybeTriggerBackgroundUpdate()` (detached subprocess, rate-limited to once per hour, TTY-only). Respect `KVIDAI_NO_UPDATE=1` and `config.autoUpdate` in any update-related code.
 
 ## Skills
 

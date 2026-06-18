@@ -1,7 +1,7 @@
 import { defineCommand } from "citty";
 import {
   CONFIG_DIR,
-  type GenmediaConfig,
+  type KvidaiConfig,
   loadConfig,
   type OutputFormat,
   saveConfig,
@@ -24,7 +24,7 @@ function printLine(line = ""): void {
   process.stdout.write(`${line}\n`);
 }
 
-function summaryPayload(config: GenmediaConfig) {
+function summaryPayload(config: KvidaiConfig) {
   return {
     ok: true,
     configPath: `${CONFIG_DIR}/config.json`,
@@ -39,7 +39,7 @@ export default defineCommand({
   meta: {
     name: "setup",
     description:
-      "Configure your fal.ai API key and preferences (use --non-interactive for agents/CI)",
+      "Configure your kvidai API key and preferences (use --non-interactive for agents/CI)",
   },
   args: {
     "non-interactive": {
@@ -65,7 +65,8 @@ export default defineCommand({
     "auto-load-env": {
       type: "boolean",
       description:
-        "Auto-load FAL_KEY and related vars from a local .env. Use --no-auto-load-env to disable.",
+        "Auto-load KVIDAI_API_KEY and related vars from a local .env. Use --no-auto-load-env to disable.",
+
     },
     "auto-update": {
       type: "boolean",
@@ -82,8 +83,8 @@ export default defineCommand({
     }
 
     if (!hasInteractiveTerminal()) {
-      error("`genmedia setup` requires an interactive terminal.", {
-        hint: 'For agents/CI, re-run with --non-interactive and flags, e.g.\n  genmedia setup --non-interactive --api-key "$FAL_KEY"\nOr set FAL_KEY in your shell profile and run `genmedia setup` from a terminal session.',
+      error("`kvidai setup` requires an interactive terminal.", {
+        hint: 'For agents/CI, re-run with --non-interactive and flags, e.g.\n  kvidai setup --non-interactive --api-key "$KVIDAI_API_KEY"\nOr set KVIDAI_API_KEY in your shell profile and run `kvidai setup` from a terminal session.',
       });
     }
 
@@ -93,7 +94,7 @@ export default defineCommand({
 
 async function runNonInteractive(args: Record<string, unknown>): Promise<void> {
   const current = loadConfig();
-  const next: GenmediaConfig = {
+  const next: KvidaiConfig = {
     ...(current.apiKey ? { apiKey: current.apiKey } : {}),
     outputFormat: current.outputFormat,
     autoLoadEnv: current.autoLoadEnv,
@@ -141,15 +142,15 @@ async function runInteractive(): Promise<void> {
   const currentFormat: OutputFormat = current.outputFormat ?? "auto";
 
   printLine();
-  printLine(colors.bold("genmedia setup"));
-  printLine(colors.dim("Configure your local fal.ai defaults."));
+  printLine(colors.bold("kvidai setup"));
+  printLine(colors.dim("Configure your local kvidai defaults."));
   printLine();
 
   if (current.apiKey) {
     printLine(`${symbols.info} Current API key: ${maskSecret(current.apiKey)}`);
   } else {
     printLine(`${symbols.warning} No API key configured yet.`);
-    printLine("    Get one at: https://fal.ai/dashboard/keys");
+    printLine("    Get one at: https://app.kvid.ai/settings");
   }
 
   try {
@@ -157,7 +158,7 @@ async function runInteractive(): Promise<void> {
       await promptText({
         message: current.apiKey
           ? "Enter a new API key (leave blank to keep the current one)"
-          : "Enter your fal.ai API key (leave blank to skip)",
+          : "Enter your kvidai API key (leave blank to skip)",
         password: true,
       })
     ).trim();
@@ -169,7 +170,7 @@ async function runInteractive(): Promise<void> {
       printLine(
         "  Your key is encrypted on this machine. For shared computers, prefer",
       );
-      printLine("  setting FAL_KEY in the environment instead.");
+      printLine("  setting KVIDAI_API_KEY in the environment instead.");
 
       const saveKey = await promptConfirm({
         message: "Save the API key to this machine's config?",
@@ -181,19 +182,19 @@ async function runInteractive(): Promise<void> {
       } else {
         printLine();
         printLine(`${symbols.info} Key not saved locally.`);
-        printLine(`    export FAL_KEY="${maskSecret(keyInput)}"`);
+        printLine(`    export KVIDAI_API_KEY="${maskSecret(keyInput)}"`);
         apiKey = current.apiKey;
       }
     } else if (!current.apiKey) {
       printLine();
       printLine(`${symbols.warning} No API key provided.`);
-      printLine("    Other commands will require FAL_KEY until you set one.");
+      printLine("    Other commands will require KVIDAI_API_KEY until you set one.");
     }
 
     printLine();
     printLine(colors.bold("Project environment loading"));
     printLine(
-      "  Auto-load FAL_KEY and related variables from a local .env file.",
+      "  Auto-load KVIDAI_API_KEY and related variables from a local .env file.",
     );
     printLine("  Shell environment variables still take precedence.");
 
@@ -207,7 +208,7 @@ async function runInteractive(): Promise<void> {
     printLine(
       "  Check for new versions in the background and swap in on next launch.",
     );
-    printLine("  Disable with GENMEDIA_NO_UPDATE=1 or by answering no below.");
+    printLine("  Disable with KVIDAI_NO_UPDATE=1 or by answering no below.");
 
     const autoUpdate = await promptConfirm({
       message: "Enable automatic updates?",
@@ -243,7 +244,7 @@ async function runInteractive(): Promise<void> {
       ],
     });
 
-    const config: GenmediaConfig = {
+    const config: KvidaiConfig = {
       ...(apiKey ? { apiKey } : {}),
       outputFormat,
       autoLoadEnv,

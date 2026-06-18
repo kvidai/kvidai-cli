@@ -1,14 +1,8 @@
-import { type CommandDef, defineCommand, renderUsage, runMain } from "citty";
+import { defineCommand, renderUsage, runMain } from "citty";
 import { renderBanner } from "./lib/banner";
 import { loadConfig } from "./lib/config";
 import { loadDotEnv } from "./lib/env";
-import { isJsonOutput, output, outputRawJson } from "./lib/output";
-import {
-  buildDynamicRunCommand,
-  isDynamicRunCommand,
-  renderDynamicRunUsage,
-  renderDynamicRunUsageJson,
-} from "./lib/run-help";
+import { isJsonOutput, output } from "./lib/output";
 import {
   maybeTriggerBackgroundUpdate,
   preSwapPendingUpdate,
@@ -36,145 +30,138 @@ function startCli(): void {
     !process.argv.slice(2).find((a) => !a.startsWith("-"))
   ) {
     output({
-      name: "genmedia",
+      name: "kvidai",
       version: VERSION,
       description:
-        "Agent-first CLI for fal.ai — search, run, and manage 600+ generative AI models",
-      install: "curl https://genmedia.sh/install -fsS | bash",
+        "Agent-first CLI for kvidai — generate, manage, and stream AI videos",
+      install: "curl https://cli.kvid.ai/install -fsS | bash",
       env: {
-        FAL_KEY:
-          "Your fal.ai API key. Can also be set via `genmedia setup` (interactive) or `genmedia setup --non-interactive --api-key <key>` (for agents/CI). Get one at https://fal.ai/dashboard/keys",
+        KVIDAI_API_KEY:
+          "Your kvidai API key. Can also be set via `kvidai setup` (interactive) or `kvidai setup --non-interactive --api-key <key>` (for agents/CI). Get one at https://app.kvid.ai/settings",
+        KVIDAI_BASE_URL:
+          "Override the API base URL (default: https://api.kvid.ai)",
+        KVIDAI_USER_EMAIL:
+          "User email required for t2v generation and asset upload",
       },
       commands: {
-        models: {
-          description: "Search, list, and inspect fal.ai models",
-          usage:
-            "genmedia models [query] [--category <cat>] [--status <s>] [--limit <n>] [--cursor <token>] [--endpoint_id <id>] [--expand <field>]",
-          args: "[query]",
-          options: {
-            "--category":
-              "Filter by category (text-to-image, image-to-video, text-to-video, text-to-speech, etc.)",
-            "--status":
-              "Filter by status: active (default), deprecated, or all",
-            "--limit": "Max results (default: 20)",
-            "--cursor": "Pagination cursor from a previous response",
-            "--endpoint_id":
-              "Specific endpoint ID(s). Repeat the flag or pass comma-separated values",
-            "--expand": "Expand fields: openapi-3.0, enterprise_status",
+        project: {
+          description: "Create and inspect video projects",
+          usage: "kvidai project <create|get> [args]",
+          subcommands: {
+            create:
+              "kvidai project create <name> [--preset-id <id>] — creates a new project, outputs {id}",
+            get: "kvidai project get <id> — get project details",
           },
         },
-        schema: {
-          description: "Get model schema in compact or OpenAPI format",
-          usage: "genmedia schema <endpoint_id> [--format <compact|openapi>]",
-          args: "<endpoint_id>",
-          options: {
-            "--format": "Schema format: compact (default) or openapi",
+        video: {
+          description: "Generate video via agent (SSE) or text-to-video",
+          usage: "kvidai video <generate|t2v> [args]",
+          subcommands: {
+            generate:
+              "kvidai video generate <projectId> <message> [--cdn-url <url>] [--mime <type>] [--filename <name>] [--verbose]",
+            t2v: "kvidai video t2v <prompt> [--model <id>] [--duration <s>] [--wait] [--output <path>] [--interval <ms>] [--timeout <ms>]",
           },
         },
-        run: {
-          description: "Run any model (waits for result)",
+        task: {
+          description: "Check async generation job status",
           usage:
-            "genmedia run <endpoint_id> [--key value ...] [--logs] [--download [template]]",
-          args: "<endpoint_id>",
+            "kvidai task status <jobId> [--wait] [--interval <ms>] [--timeout <ms>] [--output <path>]",
+          subcommands: {
+            status:
+              "kvidai task status <jobId> [--wait] — single check or poll until completed",
+          },
           options: {
-            "--<key>": "Input parameter (e.g. --prompt 'a cat' --num_images 2)",
-            "--async":
-              "Submit to queue instead of waiting (returns request_id)",
-            "--logs": "Stream logs in pretty terminal mode",
-            "--download":
-              "Download media from the result. Optional value is a path or template with {index}, {name}, {ext}, {request_id} (defaults to cwd with source file names)",
-            "--help":
-              "Introspect the model and render its input schema as CLI help",
+            "--wait": "Poll until completed",
+            "--interval": "Polling interval in ms (default: 5000)",
+            "--timeout": "Max wait time in ms (default: 600000)",
+            "--output": "Download result video to this path when done",
+          },
+        },
+        assets: {
+          description: "Upload and attach media assets",
+          usage:
+            "kvidai assets <upload|add-composition|attach-media> [args]",
+          subcommands: {
+            upload:
+              "kvidai assets upload <email> <file1> [file2...] — upload files, returns [{id, url, name}]",
+            "add-composition":
+              "kvidai assets add-composition <projectId> <email> <assetJson> — add asset to project composition",
+            "attach-media":
+              "kvidai assets attach-media <projectId> <fileId1> [fileId2...] — attach file IDs (requires STRAPI_TOKEN)",
           },
         },
         upload: {
-          description: "Upload a local file or URL to fal.ai CDN",
-          usage: "genmedia upload <file_path_or_url>",
-          args: "<file_path_or_url>",
-        },
-        status: {
-          description: "Check job status or get result",
-          usage:
-            "genmedia status <endpoint_id> <request_id> [--result] [--cancel] [--logs] [--download [template]]",
-          args: "<endpoint_id> <request_id>",
-          options: {
-            "--result": "Fetch the completed result",
-            "--cancel": "Cancel the job",
-            "--logs": "Show logs verbosely in pretty terminal mode",
-            "--download":
-              "Download media from the result (implies --result). Optional value is a path or template with {index}, {name}, {ext}, {request_id}",
-          },
-        },
-        pricing: {
-          description: "Get pricing information for a model",
-          usage: "genmedia pricing <endpoint_id>",
-          args: "<endpoint_id>",
-        },
-        docs: {
           description:
-            "Search fal.ai documentation, guides, and API references",
-          usage: "genmedia docs <query>",
-          args: "<query>",
-        },
-        version: {
-          description: "Show version and check for updates",
-          usage: "genmedia version",
-        },
-        update: {
-          description: "Check for and apply updates to the genmedia CLI",
-          usage: "genmedia update [--check] [--force]",
+            "Upload a local file to kvidai CDN (uses KVIDAI_USER_EMAIL env or --email flag)",
+          usage: "kvidai upload <file_path> [--email <email>]",
+          args: "<file_path>",
           options: {
-            "--check": "Only check for a newer version; don't download",
-            "--force":
-              "Re-download and reinstall even if already on the latest",
-          },
-          env: {
-            GENMEDIA_NO_UPDATE:
-              "Set to 1 to disable all automatic update checks (manual `update` still works)",
+            "--email": "User email (overrides KVIDAI_USER_EMAIL env var)",
           },
         },
         setup: {
           description:
-            "Configure your fal.ai API key and preferences (supports non-interactive mode for agents/CI)",
+            "Configure your kvidai API key and preferences (supports non-interactive mode for agents/CI)",
           usage:
-            "genmedia setup [--non-interactive --api-key <key> --output-format <auto|json|standard> [--no-]auto-load-env [--no-]auto-update]",
+            "kvidai setup [--non-interactive --api-key <key> --output-format <auto|json|standard> [--no-]auto-load-env [--no-]auto-update]",
           options: {
             "--non-interactive":
-              "Skip all prompts. Required to run without a TTY. Alias: -y. Fields not passed keep their current values.",
-            "--api-key":
-              "API key to save when running with --non-interactive. Pass an empty string to clear the saved key.",
+              "Skip all prompts. Required to run without a TTY. Alias: -y.",
+            "--api-key": "API key to save. Pass empty string to clear.",
             "--no-save-key":
-              "With --api-key, don't persist the key to config.json (use FAL_KEY at runtime instead).",
+              "With --api-key, don't persist the key to config.json.",
             "--output-format": "Default output mode: auto, json, or standard.",
             "--auto-load-env":
-              "Auto-load FAL_KEY and related vars from a local .env. Use --no-auto-load-env to disable.",
+              "Auto-load KVIDAI_API_KEY and related vars from a local .env.",
             "--auto-update":
               "Enable background update checks. Use --no-auto-update to disable.",
           },
         },
         init: {
           description:
-            "Install the default genmedia skill bundle into the current project (alias for `skills install genmedia genmedia-ref`)",
-          usage: "genmedia init [--force]",
+            "Install the default kvidai skill bundle into the current project",
+          usage: "kvidai init [--force]",
           options: {
             "--force": "Reinstall skills even if already present",
           },
         },
         skills: {
           description:
-            "Install, update, and list agent skills from the genmedia registry (installs under .agents/skills/, symlinked into .claude/skills/)",
-          usage: "genmedia skills <list|install|update|remove> [args]",
+            "Install, update, and list agent skills from the kvidai registry",
+          usage: "kvidai skills <list|install|update|remove> [args]",
           subcommands: {
             list: "List skills available in the registry",
-            install: "genmedia skills install <name> [--force]",
-            update: "genmedia skills update [<name>]",
-            remove: "genmedia skills remove <name>",
+            install: "kvidai skills install <name> [--force]",
+            update: "kvidai skills update [<name>]",
+            remove: "kvidai skills remove <name>",
           },
           env: {
-            GENMEDIA_SKILLS_URL:
-              "Override the registry base URL (default: https://raw.githubusercontent.com/fal-ai-community/genmedia-cli/refs/heads/main/skills)",
-            GENMEDIA_AGENT_LINKS:
+            KVIDAI_SKILLS_URL:
+              "Override the registry base URL (default: https://raw.githubusercontent.com/kvidai/kvidai-cli/refs/heads/main/skills)",
+            KVIDAI_AGENT_LINKS:
               "Comma-separated list of agent skill dirs to symlink into (default: .claude/skills)",
+          },
+        },
+        docs: {
+          description: "Search kvidai documentation and API references",
+          usage: "kvidai docs <query>",
+          args: "<query>",
+        },
+        version: {
+          description: "Show version and check for updates",
+          usage: "kvidai version",
+        },
+        update: {
+          description: "Check for and apply updates to the kvidai CLI",
+          usage: "kvidai update [--check] [--force]",
+          options: {
+            "--check": "Only check for a newer version; don't download",
+            "--force":
+              "Re-download and reinstall even if already on the latest",
+          },
+          env: {
+            KVIDAI_NO_UPDATE:
+              "Set to 1 to disable all automatic update checks (manual `update` still works)",
           },
         },
       },
@@ -189,30 +176,19 @@ function startCli(): void {
 
   const main = defineCommand({
     meta: {
-      name: "genmedia",
+      name: "kvidai",
       version: VERSION,
-      description: "Agent-first CLI for fal.ai",
+      description: "Agent-first CLI for kvidai",
     },
     subCommands: {
       setup: () => import("./commands/setup").then((m) => m.default),
       init: () => import("./commands/init").then((m) => m.default),
       skills: () => import("./commands/skills/index").then((m) => m.default),
-      models: () => import("./commands/models").then((m) => m.default),
-      schema: () => import("./commands/schema").then((m) => m.default),
-      run: async () => {
-        const argv = process.argv.slice(2);
-        if (argv[0] === "run" && argv.includes("--help")) {
-          const endpointId = argv[1];
-          if (endpointId && !endpointId.startsWith("--")) {
-            const dynamic = await buildDynamicRunCommand(endpointId);
-            if (dynamic) return dynamic;
-          }
-        }
-        return (await import("./commands/run")).default;
-      },
-      status: () => import("./commands/status").then((m) => m.default),
+      project: () => import("./commands/project").then((m) => m.default),
+      video: () => import("./commands/video").then((m) => m.default),
+      task: () => import("./commands/task").then((m) => m.default),
+      assets: () => import("./commands/assets").then((m) => m.default),
       upload: () => import("./commands/upload").then((m) => m.default),
-      pricing: () => import("./commands/pricing").then((m) => m.default),
       docs: () => import("./commands/docs").then((m) => m.default),
       version: () => import("./commands/version").then((m) => m.default),
       update: () => import("./commands/update").then((m) => m.default),
@@ -221,26 +197,22 @@ function startCli(): void {
 
   runMain(main, {
     showUsage: async (cmd, parent) => {
-      const anyCmd = cmd as CommandDef;
-      const anyParent = parent as CommandDef | undefined;
-      if (isDynamicRunCommand(anyCmd) && isJsonOutput()) {
-        outputRawJson(await renderDynamicRunUsageJson(anyCmd, anyParent));
-        return;
-      }
       if (process.stdout.isTTY) {
         console.log(renderBanner(VERSION, "small"));
       }
-      const usage = isDynamicRunCommand(anyCmd)
-        ? await renderDynamicRunUsage(anyCmd, anyParent)
-        : await renderUsage(cmd, parent);
+      const usage = await renderUsage(cmd, parent);
       console.log(`${usage}\n`);
 
-      if (!isJsonOutput() && !process.env.FAL_KEY && !loadConfig().apiKey) {
+      if (
+        !isJsonOutput() &&
+        !process.env.KVIDAI_API_KEY &&
+        !loadConfig().apiKey
+      ) {
         console.log(
-          "Tip: set FAL_KEY in your environment or run `genmedia setup` before using model commands.",
+          "Tip: set KVIDAI_API_KEY in your environment or run `kvidai setup` before using commands.",
         );
         console.log(
-          '     For agents/CI: `genmedia setup --non-interactive --api-key "$FAL_KEY"`.',
+          '     For agents/CI: `kvidai setup --non-interactive --api-key "$KVIDAI_API_KEY"`.',
         );
         console.log();
       }

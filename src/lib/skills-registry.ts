@@ -9,7 +9,7 @@ import {
 import { dirname, join, relative, resolve } from "node:path";
 
 const DEFAULT_REGISTRY_URL =
-  "https://raw.githubusercontent.com/fal-ai-community/genmedia-cli/refs/heads/main/skills";
+  "https://raw.githubusercontent.com/kvidai/kvidai-cli/refs/heads/main/skills";
 
 export const AGENT_ROOTS = [".agents", ".claude"] as const;
 const SKILLS_SUBDIR = "skills";
@@ -47,7 +47,7 @@ export interface InstalledManifest {
 }
 
 export function getRegistryUrl(): string {
-  return (process.env.GENMEDIA_SKILLS_URL ?? DEFAULT_REGISTRY_URL).replace(
+  return (process.env.KVIDAI_SKILLS_URL ?? DEFAULT_REGISTRY_URL).replace(
     /\/+$/,
     "",
   );
@@ -64,7 +64,7 @@ export function resolveSkillsBase(cwd: string): string | null {
 
 async function fetchText(url: string): Promise<string> {
   const res = await fetch(url, {
-    headers: { "User-Agent": "genmedia-cli" },
+    headers: { "User-Agent": "kvidai-cli" },
   });
   if (!res.ok) {
     throw new Error(`GET ${url} → ${res.status} ${res.statusText}`);

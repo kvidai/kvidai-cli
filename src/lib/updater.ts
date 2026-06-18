@@ -13,8 +13,8 @@ import { dirname } from "node:path";
 import { loadConfig, saveConfig } from "./config";
 import { VERSION } from "./version";
 
-const GITHUB_REPO = "fal-ai-community/genmedia-cli";
-const USER_AGENT = "genmedia-cli";
+const GITHUB_REPO = "kvidai/kvidai-cli";
+const USER_AGENT = "kvidai-cli";
 const RATE_LIMIT_MS = 60 * 60 * 1000;
 const MIN_BINARY_BYTES = 1024;
 
@@ -76,7 +76,7 @@ export function getInstallInfo(): InstallInfo | null {
     oldPath: `${execPath}.old`,
     platform,
     arch,
-    assetName: `genmedia-${platform}-${arch}${ext}`,
+    assetName: `kvidai-${platform}-${arch}${ext}`,
   };
 }
 
@@ -117,8 +117,8 @@ export function preSwapPendingUpdate(): void {
 }
 
 export function maybeTriggerBackgroundUpdate(): void {
-  if (process.env.GENMEDIA_INTERNAL_UPDATE === "1") return;
-  if (process.env.GENMEDIA_NO_UPDATE === "1") return;
+  if (process.env.KVIDAI_INTERNAL_UPDATE === "1") return;
+  if (process.env.KVIDAI_NO_UPDATE === "1") return;
   if (!process.stdout.isTTY) return;
   if (process.argv.includes("--json")) return;
 
@@ -135,7 +135,7 @@ export function maybeTriggerBackgroundUpdate(): void {
   try {
     const child = Bun.spawn({
       cmd: [process.execPath, "__update-check"],
-      env: { ...process.env, GENMEDIA_INTERNAL_UPDATE: "1" },
+      env: { ...process.env, KVIDAI_INTERNAL_UPDATE: "1" },
       stdio: ["ignore", "ignore", "ignore"],
     });
     child.unref();

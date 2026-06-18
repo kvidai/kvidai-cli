@@ -13,7 +13,7 @@ const bannerSmall: Banner = {
     "░█░█░█▀▀░█░█░░░█░█░█▀▀░█░█░░█░░█▀█",
     "░▀▀▀░▀▀▀░▀░▀░░░▀░▀░▀▀▀░▀▀░░▀▀▀░▀░▀",
     "",
-    `Powered by fal               v${version}`,
+    `Powered by kvidai            v${version}`,
   ],
   colors: {
     foreground: {
@@ -153,7 +153,7 @@ const bannerLarge: Banner = {
     "????88.==.88<88.;;...:8898888878866885588488.32...188.00.88/88.88.--.88++++",
     "????`8888P88<`88888P':dP9888dP7dP66dP55dP4`88888P'1`88888P8/dP.`88888P8++++",
     "????>>>==.88<<;;;;::::99988887776666555444433322221110000////...----,,,++++",
-    `????>d8888P<<<;powered by fal7776666555444433322221110000/ Version ${version} ++`,
+    `????>d8888P<<<;powered by kvidai7776666555444433322221110000/ Version ${version} ++`,
     "????>>>====<<<;;;;::::99988887776666555444433322221110000////...----,,,++++",
     "??■?>>>====■<<;;;;::::999888877766665554444■33222211100■0////...--■-■,,++++",
     "????■■>==■■<<<;;;;::::999888877766■655544443■32222111000■////...---■■■,+■++",
@@ -1290,7 +1290,7 @@ const bannerLarge: Banner = {
 };
 
 /**
- * Renders the genmedia CLI banner with gradient colors.
+ * Renders the kvidai CLI banner with gradient colors.
  * Generated from assets/banner.json — do not edit by hand.
  */
 export function renderBanner(

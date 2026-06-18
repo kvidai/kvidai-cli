@@ -1,17 +1,17 @@
 #!/bin/sh
-# genmedia installer
+# kvidai CLI installer
 # Usage:
-#   curl -fsSL https://genmedia.sh/install | sh
-#   curl -fsSL https://raw.githubusercontent.com/fal-ai-community/genmedia-cli/refs/heads/main/install.sh | sh
+#   curl https://cli.kvid.ai/install -fsS | bash
+#   curl -fsSL https://raw.githubusercontent.com/kvidai/kvidai-cli/refs/heads/main/install.sh | sh
 #
 # Environment variables:
-#   GENMEDIA_VERSION   - specific version to install (default: latest)
-#   GENMEDIA_DIR       - installation directory (default: ~/.genmedia)
+#   KVIDAI_VERSION   - specific version to install (default: latest)
+#   KVIDAI_DIR       - installation directory (default: ~/.kvidai)
 
 set -eu
 
-GITHUB_REPO="fal-ai-community/genmedia-cli"
-BINARY_NAME="genmedia"
+GITHUB_REPO="kvidai/kvidai-cli"
+BINARY_NAME="kvidai"
 
 BOLD=""
 GREEN=""
@@ -52,7 +52,7 @@ detect_platform() {
         Linux|linux)   PLATFORM="linux" ;;
         Darwin|darwin) PLATFORM="darwin" ;;
         MINGW*|MSYS*|CYGWIN*)
-            error "Use install.ps1 for Windows: irm https://genmedia.sh/install.ps1 | iex"
+            error "Use install.ps1 for Windows: irm https://cli.kvid.ai/install.ps1 | iex"
             ;;
         *) error "Unsupported operating system: $OS" ;;
     esac
@@ -71,11 +71,11 @@ get_latest_version() {
     elif command -v wget > /dev/null 2>&1; then
         version=$(wget -qO- "$url" | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
     else
-        error "curl or wget is required to download genmedia"
+        error "curl or wget is required to download kvidai"
     fi
 
     if [ -z "$version" ]; then
-        error "Could not determine the latest version. Set GENMEDIA_VERSION to install a specific version."
+        error "Could not determine the latest version. Set KVIDAI_VERSION to install a specific version."
     fi
 
     echo "$version"
@@ -90,7 +90,7 @@ download() {
     elif command -v wget > /dev/null 2>&1; then
         wget -q --show-progress -O "$output" "$url"
     else
-        error "curl or wget is required to download genmedia"
+        error "curl or wget is required to download kvidai"
     fi
 }
 
@@ -149,6 +149,9 @@ try_symlink_local_bin() {
         return 1
     fi
 
+    # Also create kvd alias
+    ln -sf "$src" "${local_bin}/kvd" 2>/dev/null || true
+
     if echo "$PATH" | tr ':' '\n' | grep -qx "$local_bin"; then
         return 0
     fi
@@ -172,7 +175,7 @@ update_shell_profile() {
             fi
             ;;
         fish)
-            fish_config="$HOME/.config/fish/conf.d/genmedia.fish"
+            fish_config="$HOME/.config/fish/conf.d/kvidai.fish"
             if [ ! -f "$fish_config" ] || ! grep -q "$bin_dir" "$fish_config" 2>/dev/null; then
                 mkdir -p "$(dirname "$fish_config")"
                 echo "fish_add_path $bin_dir" > "$fish_config"
@@ -189,7 +192,7 @@ update_shell_profile() {
     fi
 
     echo "" >> "$profile"
-    echo "# genmedia" >> "$profile"
+    echo "# kvidai" >> "$profile"
     echo "$export_line" >> "$profile"
     return 0
 }
@@ -197,9 +200,9 @@ update_shell_profile() {
 main() {
     detect_platform
 
-    GENMEDIA_DIR="${GENMEDIA_DIR:-$HOME/.genmedia}"
-    BIN_DIR="${GENMEDIA_DIR}/bin"
-    VERSION="${GENMEDIA_VERSION:-latest}"
+    KVIDAI_DIR="${KVIDAI_DIR:-$HOME/.kvidai}"
+    BIN_DIR="${KVIDAI_DIR}/bin"
+    VERSION="${KVIDAI_VERSION:-latest}"
 
     if [ "$VERSION" = "latest" ]; then
         VERSION=$(get_latest_version)
@@ -208,7 +211,7 @@ main() {
     ASSET_NAME="${BINARY_NAME}-${PLATFORM}-${ARCH}"
     DOWNLOAD_URL="https://github.com/${GITHUB_REPO}/releases/download/v${VERSION}/${ASSET_NAME}"
 
-    info "Installing genmedia v${VERSION} (${PLATFORM}-${ARCH})..."
+    info "Installing kvidai v${VERSION} (${PLATFORM}-${ARCH})..."
 
     mkdir -p "$BIN_DIR"
 
@@ -222,6 +225,9 @@ main() {
 
     mv "$TMP_FILE" "${BIN_DIR}/${BINARY_NAME}"
     chmod +x "${BIN_DIR}/${BINARY_NAME}"
+
+    # Create kvd alias
+    ln -sf "${BIN_DIR}/${BINARY_NAME}" "${BIN_DIR}/kvd" 2>/dev/null || true
 
     # Check if already on PATH
     if echo "$PATH" | tr ':' '\n' | grep -qx "$BIN_DIR"; then
@@ -257,27 +263,27 @@ main() {
     fi
 
     echo ""
-    success "genmedia v${VERSION} installed successfully!"
+    success "kvidai v${VERSION} installed successfully!"
     echo ""
 
     if [ "$SYMLINK_ON_PATH" = true ]; then
-        info "Installed to ${BIN_DIR}, linked into ~/.local/bin."
-        info "Run 'genmedia --help' to get started."
+        info "Installed to ${BIN_DIR}, linked into ~/.local/bin (kvidai + kvd)."
+        info "Run 'kvidai setup' to configure your API key."
     elif [ "$PATH_CONFIGURED" = true ]; then
-        info "Run 'genmedia --help' to get started."
+        info "Run 'kvidai setup' to configure your API key."
     elif [ "${PROFILE_UPDATED:-false}" = true ]; then
         info "Added ${PROFILE_BIN_DIR} to your shell profile."
         info "Open a new shell, or run this once in the current one:"
         echo ""
         echo "  export PATH=\"${PROFILE_BIN_DIR}:\$PATH\""
         echo ""
-        info "Then run 'genmedia --help' to get started."
+        info "Then run 'kvidai setup' to configure your API key."
     else
-        warn "Add genmedia to your PATH:"
+        warn "Add kvidai to your PATH:"
         echo ""
         echo "  export PATH=\"${BIN_DIR}:\$PATH\""
         echo ""
-        info "Then run 'genmedia --help' to get started."
+        info "Then run 'kvidai setup' to configure your API key."
     fi
 }
 

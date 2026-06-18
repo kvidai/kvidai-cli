@@ -28,7 +28,7 @@ export default defineCommand({
         output({ updated: [] });
       } else {
         process.stdout.write(
-          `\n  ${colors.dim("No skills installed. Try:")} genmedia skills install <name>\n\n`,
+          `\n  ${colors.dim("No skills installed. Try:")} kvidai skills install <name>\n\n`,
         );
       }
       return;

@@ -21,7 +21,7 @@ export default defineCommand({
       process.stdout.write(`${renderBanner(VERSION)}\n`);
       if (updateAvailable) {
         process.stdout.write(
-          `Update available: ${VERSION} → ${updateAvailable}. Run \`genmedia update\` to install.\n`,
+          `Update available: ${VERSION} → ${updateAvailable}. Run \`kvidai update\` to install.\n`,
         );
       }
       return;

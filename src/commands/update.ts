@@ -6,7 +6,7 @@ import { runManualUpdate } from "../lib/updater";
 export default defineCommand({
   meta: {
     name: "update",
-    description: "Check for and apply updates to the genmedia CLI",
+    description: "Check for and apply updates to the kvidai CLI",
   },
   args: {
     check: {
@@ -56,7 +56,7 @@ export default defineCommand({
         output(result);
       } else {
         process.stdout.write(
-          `${colors.dim("Run `genmedia version` to verify.")}\n`,
+          `${colors.dim("Run `kvidai version` to verify.")}\n`,
         );
       }
       return;

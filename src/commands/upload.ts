@@ -1,53 +1,52 @@
-import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
-import { basename, extname, resolve } from "node:path";
-import { fal } from "@fal-ai/client";
+import { readFileSync } from "node:fs";
+import { basename } from "node:path";
 import { defineCommand } from "citty";
-import { configureSDK } from "../lib/api";
-import { MIME_TYPES } from "../lib/mime";
+import { getApiKey, PLATFORM_BASE } from "../lib/api";
 import { error, output } from "../lib/output";
 
 export default defineCommand({
   meta: {
     name: "upload",
-    description: "Upload a local file or URL to fal.ai CDN",
+    description:
+      "Upload a local file to kvidai CDN (uses KVIDAI_USER_EMAIL or --email)",
   },
   args: {
-    target: {
+    file: {
       type: "positional",
       required: true,
-      description: "File path or URL to upload",
+      description: "Local file path to upload",
+    },
+    email: {
+      type: "string",
+      description:
+        "User email (overrides KVIDAI_USER_EMAIL env var)",
     },
   },
   async run({ args }) {
-    configureSDK();
+    const filePath = args.file as string;
+    const email = (args.email as string | undefined) ?? process.env.KVIDAI_USER_EMAIL;
 
-    const { target } = args;
-    let cdnUrl: string;
-
-    if (target.startsWith("http://") || target.startsWith("https://")) {
-      const response = await fetch(target);
-      if (!response.ok) error(`Failed to fetch ${target}: ${response.status}`);
-      const blob = await response.blob();
-      const name = target.split("/").pop() || "upload";
-      const file = new File([blob], name, {
-        type: blob.type || "application/octet-stream",
+    if (!email) {
+      error("Email is required", {
+        hint: "Set KVIDAI_USER_EMAIL in your environment or pass --email <email>",
       });
-      cdnUrl = await fal.storage.upload(file);
-    } else {
-      const filePath = resolve(target);
-      if (!existsSync(filePath)) error(`File not found: ${filePath}`);
-      const data = await readFile(filePath);
-      const name = basename(filePath);
-      const ext = extname(filePath).toLowerCase();
-      const mimeType = MIME_TYPES[ext] || "application/octet-stream";
-      const file = new File([data], name, { type: mimeType });
-      cdnUrl = await fal.storage.upload(file);
     }
 
-    output({
-      cdn_url: cdnUrl,
-      hint: "Use this URL as input to fal.ai models.",
+    const buf = readFileSync(filePath);
+    const formData = new FormData();
+    formData.append("email", email as string);
+    formData.append("files", new Blob([buf]), basename(filePath));
+
+    const r = await fetch(`${PLATFORM_BASE}/api/media-management/upload`, {
+      method: "POST",
+      headers: { "api-key": getApiKey() },
+      body: formData,
     });
+    if (!r.ok) error(`upload ${r.status}: ${await r.text()}`);
+    const d = await r.json();
+    if (!d.success) error(`upload failed: ${JSON.stringify(d)}`);
+
+    const file = (d.data as Array<{ id: number; url: string; name: string }>)[0];
+    output({ id: file.id, url: file.url, name: file.name });
   },
 });

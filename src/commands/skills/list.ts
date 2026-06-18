@@ -11,7 +11,7 @@ import { colors } from "../../lib/ui";
 export default defineCommand({
   meta: {
     name: "list",
-    description: "List skills available in the genmedia registry",
+    description: "List skills available in the kvidai registry",
   },
   async run() {
     let index: SkillsIndex;
@@ -48,7 +48,7 @@ export default defineCommand({
       process.stdout.write(`    ${colors.dim(s.description)}\n\n`);
     }
     process.stdout.write(
-      `${colors.dim(`Install with: genmedia skills install <name>`)}\n\n`,
+      `${colors.dim(`Install with: kvidai skills install <name>`)}\n\n`,
     );
   },
 });

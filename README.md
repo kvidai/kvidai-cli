@@ -1,49 +1,51 @@
-# genmedia
+# kvidai CLI
 
-Agent-first CLI for fal.ai — search, run, and manage 1200+ model endpoints.
+Agent-first CLI for [kvidai](https://kvid.ai) — generate, manage, and stream AI videos from your terminal or agent scripts.
 
-Works great for humans in a terminal and equally well for AI agents via shell commands. In a TTY, commands display a lightweight pretty view; when piped or called with `--json`, they emit structured JSON. No MCP required.
+Works great for humans in a terminal and equally well for AI agents via shell commands. In a TTY, commands display a lightweight pretty view; when piped or called with `--json`, they emit structured JSON.
 
 ## Install
 
-For Linux and macOS:
+**Linux / macOS:**
 
 ```bash
-curl https://genmedia.sh/install -fsS | bash
+curl https://cli.kvid.ai/install -fsS | bash
 ```
 
-For Windows:
+**Windows (PowerShell):**
 
-```bash
-irm https://genmedia.sh/install.ps1 | iex
+```powershell
+irm https://cli.kvid.ai/install.ps1 | iex
 ```
+
+Both `kvidai` and `kvd` are registered as aliases after install.
 
 ## Setup
 
 ```bash
-genmedia setup
+kvidai setup
 ```
 
 Interactive wizard that configures:
 
-- **API key** — saved encrypted to your local config (or skip and use `FAL_KEY` in your environment)
-- **Auto-load `.env`** — automatically load `FAL_KEY` and related vars from a project `.env` file
+- **API key** — saved encrypted to `~/.kvidai/config.json` (or skip and use `KVIDAI_API_KEY` in your environment)
+- **Auto-load `.env`** — automatically load `KVIDAI_API_KEY` and related vars from a project `.env` file
 - **Output mode** — `auto` (pretty in TTY, JSON when piped), `json` (always structured), or `standard` (always human-readable)
-- **Automatic updates** — check for new versions in the background and swap in on next launch (default: on; set `GENMEDIA_NO_UPDATE=1` to disable)
+- **Automatic updates** — check for new versions in the background (default: on; set `KVIDAI_NO_UPDATE=1` to disable)
 
-Get your API key at [fal.ai/dashboard/keys](https://fal.ai/dashboard/keys).
+Get your API key at [app.kvid.ai/settings](https://app.kvid.ai/settings).
 
 To skip the wizard, set the key in your environment:
 
 ```bash
-export FAL_KEY=your_fal_api_key
+export KVIDAI_API_KEY=your_kvidai_api_key
 ```
 
 ### Non-interactive setup (agents / CI)
 
 ```bash
-genmedia setup --non-interactive --api-key "$FAL_KEY"
-genmedia setup --non-interactive --output-format json --no-auto-load-env --auto-update
+kvidai setup --non-interactive --api-key "$KVIDAI_API_KEY"
+kvidai setup --non-interactive --output-format json --no-auto-load-env --auto-update
 ```
 
 Every flag is optional — fields you don't pass keep their current values, so repeated invocations are idempotent.
@@ -52,176 +54,179 @@ Every flag is optional — fields you don't pass keep their current values, so r
 |---|---|
 | `--non-interactive`, `-y` | Skip all prompts. Required when there is no TTY. |
 | `--api-key <key>` | API key to save. Pass `""` to clear the saved key. |
-| `--no-save-key` | With `--api-key`, don't persist the key to `config.json` (use `FAL_KEY` at runtime instead). |
+| `--no-save-key` | With `--api-key`, don't persist the key to `config.json`. |
 | `--output-format <auto\|json\|standard>` | Default output mode. |
-| `--auto-load-env` / `--no-auto-load-env` | Toggle auto-loading `FAL_KEY` from a project `.env`. |
+| `--auto-load-env` / `--no-auto-load-env` | Toggle auto-loading from a project `.env`. |
 | `--auto-update` / `--no-auto-update` | Toggle background update checks. |
+
+## Environment Variables
+
+| Variable | Description |
+|---|---|
+| `KVIDAI_API_KEY` | API key (required for all commands) |
+| `KVIDAI_BASE_URL` | Override API base URL (default: `https://api.kvid.ai`) |
+| `KVIDAI_USER_EMAIL` | User email (required for `video t2v` and `assets upload`) |
+| `STRAPI_TOKEN` | Bearer token for `assets attach-media` only |
+| `KVIDAI_NO_UPDATE` | Set to `1` to disable automatic update checks |
 
 ## Commands
 
-### `models` — Search and inspect models
+### `kvidai project create <name> [--preset-id <id>]`
+
+Create a new video project. Returns `{ id }`.
 
 ```bash
-genmedia models "text to video"
-genmedia models "flux" --category text-to-image
-genmedia models --category text-to-speech --limit 5
-genmedia models --status all                                      # include deprecated
-genmedia models --endpoint_id fal-ai/flux/dev,fal-ai/flux/schnell # fetch specific models
-genmedia models --endpoint_id fal-ai/flux/dev --expand openapi-3.0
-genmedia models "flux" --cursor <token>                           # next page
+kvidai project create "My Campaign" --json
+# → {"id": 42}
 ```
 
-| Option | Description |
-|---|---|
-| `--category` | Filter by category (e.g. `text-to-image`, `image-to-video`, `text-to-speech`) |
-| `--status` | `active` (default), `deprecated`, or `all` |
-| `--limit` | Max results (default: 20) |
-| `--cursor` | Pagination cursor from a previous response |
-| `--endpoint_id` | Fetch specific model(s) by ID — comma-separated or repeated |
-| `--expand` | Expand additional fields: `openapi-3.0`, `enterprise_status` |
+### `kvidai project get <id>`
 
-### `schema` — Inspect model inputs/outputs
+Get project details.
 
 ```bash
-genmedia schema fal-ai/flux/dev
-genmedia schema fal-ai/flux/dev --format openapi
+kvidai project get 42 --json
 ```
 
-| Option | Description |
-|---|---|
-| `--format` | `compact` (default) or `openapi` — returns full OpenAPI JSON |
+### `kvidai video generate <projectId> <message> [options]`
 
-### `run` — Run a model
+Stream agent generation for a project via SSE. The agent processes the message and executes tools; the command exits when the stream ends.
 
 ```bash
-genmedia run fal-ai/flux/dev --prompt "a cat on the moon"
-genmedia run fal-ai/flux/dev --prompt "a cat" --num_images 2
-genmedia run fal-ai/flux/dev --prompt "a cat" --logs
-genmedia run fal-ai/veo3.1 --prompt "a dog running" --async
-genmedia run fal-ai/flux/dev --prompt "a cat" --download                               # save to cwd with source file names
-genmedia run fal-ai/flux/dev --prompt "a cat" --num_images 3 --download "./out/{index}.{ext}"
-genmedia run fal-ai/flux/dev --help    # introspect model inputs as CLI help
+kvidai video generate 42 "고양이가 뛰노는 5초 세로 영상" --verbose
 ```
 
-Any model input parameter can be passed as a `--flag value` pair. Run `genmedia run <endpoint_id> --help` to see a model's accepted parameters rendered as CLI flags, or `genmedia schema <endpoint_id>` for the same info as structured JSON.
+Options:
+- `--cdn-url <url>` — attach a pre-uploaded CDN file as context
+- `--mime <type>` — MIME type of the `--cdn-url` attachment
+- `--filename <name>` — filename for the `--cdn-url` attachment
+- `--verbose` — print tool events to stderr in real time
 
-| Option | Description |
-|---|---|
-| `--<param>` | Any model input parameter (e.g. `--prompt`, `--num_images`) |
-| `--logs` | Stream logs while the model runs (pretty terminal mode only) |
-| `--async` | Submit to queue without waiting — returns a `request_id` |
-| `--download [template]` | Download every media URL in the result. Optional value is a path or filename template with `{index}`, `{name}`, `{ext}`, `{request_id}` placeholders. Omitted → cwd with source file names. Trailing `/` or an existing directory → dir + source file names. Plain filename with multiple outputs → `_1`, `_2` suffixes on collision. Downloaded paths appear in JSON output under `downloaded_files`. |
+### `kvidai video t2v <prompt> [options]`
 
-### `status` — Check an async job
+Submit a text-to-video async job. Without `--wait`, returns `{ jobId }` immediately.
 
 ```bash
-genmedia status fal-ai/veo3.1 <request_id>
-genmedia status fal-ai/veo3.1 <request_id> --result
-genmedia status fal-ai/veo3.1 <request_id> --logs
-genmedia status fal-ai/veo3.1 <request_id> --cancel
-genmedia status fal-ai/veo3.1 <request_id> --download ./out/   # implies --result
+# Submit and return jobId immediately
+kvidai video t2v "sunset over ocean, cinematic 4K" --json
+
+# Submit, poll until done, download result
+kvidai video t2v "sunset over ocean" --wait --output ./result.mp4
 ```
 
-| Option | Description |
-|---|---|
-| `--result` | Fetch the completed result |
-| `--logs` | Show logs verbosely |
-| `--cancel` | Cancel the queued job |
-| `--download [template]` | Same as on `run`. Implies `--result` — fetches the completed result and writes media files to disk. |
+Options:
+- `--model <id>` — model ID (server default if omitted)
+- `--duration <s>` — duration in seconds
+- `--wait` — poll until completed
+- `--output <path>` — download result video (implies `--wait`)
+- `--interval <ms>` — polling interval (default: 5000)
+- `--timeout <ms>` — max wait time (default: 600000)
 
-### `upload` — Upload files to fal.ai CDN
+### `kvidai task status <jobId> [options]`
+
+Check or poll an async generation job.
 
 ```bash
-genmedia upload ./photo.jpg
-genmedia upload https://example.com/image.png
+# Single status check
+kvidai task status abc-123 --json
+
+# Poll until done
+kvidai task status abc-123 --wait --output ./video.mp4
 ```
 
-Accepts a local file path or a remote URL. Returns a CDN URL you can use as model input.
+### `kvidai assets upload <email> <file1> [file2...]`
 
-### `pricing` — Check model pricing
+Upload local files to kvidai CDN. Returns `[{ id, url, name }]`.
 
 ```bash
-genmedia pricing fal-ai/flux/dev
+kvidai assets upload user@example.com ./logo.png ./background.jpg --json
 ```
 
-### `docs` — Search documentation
+### `kvidai assets add-composition <projectId> <email> <assetJson>`
+
+Add an asset to a project's composition so the agent can reference it on the timeline.
 
 ```bash
-genmedia docs "how to use LoRA"
-genmedia docs "webhook callbacks"
+kvidai assets add-composition 42 user@example.com \
+  '{"id":"asset_1","type":"image","remoteUrl":"https://cdn.kvid.ai/file.jpg"}'
 ```
 
-Searches fal.ai documentation, guides, and API references.
+### `kvidai assets attach-media <projectId> <fileId1> [fileId2...]`
 
-### `version` — Show version
+Attach uploaded file IDs to a project's media relation. Requires `STRAPI_TOKEN`.
 
 ```bash
-genmedia version
+STRAPI_TOKEN=xxx kvidai assets attach-media 42 101 102
 ```
 
-Shows the current version and flags any known update (populated by the background checker).
+### `kvidai upload <file> [--email <email>]`
 
-### `update` — Check for and apply updates
+Upload a single file (shorthand). Uses `KVIDAI_USER_EMAIL` env or `--email` flag.
 
 ```bash
-genmedia update              # download and swap in the latest release
-genmedia update --check      # only check, don't download
-genmedia update --force      # reinstall even if already on the latest
+export KVIDAI_USER_EMAIL=user@example.com
+kvidai upload ./logo.png --json
 ```
 
-| Option | Description |
-|---|---|
-| `--check` | Only check for a newer version; don't download |
-| `--force` | Re-download and reinstall even if already on the latest |
+### `kvidai skills <list|install|update|remove>`
 
-When automatic updates are enabled (default), every TTY invocation may trigger a rate-limited (1/hour) background check that stages the next release. The next `genmedia` launch atomically swaps it in. Set `GENMEDIA_NO_UPDATE=1` to disable all background checks; the manual `update` command still works.
-
-### `init` — Install the default genmedia skill bundle
+Manage agent skill bundles (install under `.agents/skills/`, symlinked into `.claude/skills/`).
 
 ```bash
-genmedia init
-genmedia init --force   # overwrite existing files
+kvidai init                     # install default kvidai skill bundle
+kvidai skills list              # list available skills
+kvidai skills install kvidai-video-project
 ```
 
-Installs the default genmedia skill bundle:
+### `kvidai version`
 
-| Skill | Purpose |
-|---|---|
-| `genmedia-ref` | Background reference for fal.ai work |
-| `genmedia` | Guided workflow for model discovery, schema inspection, and execution |
+Show current version and check for updates.
 
-The bundle is installed into `.agents/skills/` if the project has a `.agents/` directory, otherwise into `.claude/skills/`. If neither directory exists, the command exits with a message asking you to create one and try again.
+### `kvidai update [--check] [--force]`
 
-After running `init`, compatible agent sessions in that project can use the installed skills without needing to call `--help`. Commit the installed skills directory so teammates and other agents get the same context.
+Download and install the latest version.
 
-### `skills` — Manage installed agent skills
+## Agent Usage
+
+All commands support `--json` for machine-readable output. To get a full schema of all commands, arguments, and environment variables:
 
 ```bash
-genmedia skills list
-genmedia skills install genmedia
-genmedia skills update
-genmedia skills remove genmedia
+kvidai --json
 ```
 
-Installs, updates, lists, and removes agent skills from the genmedia registry.
-
-## Agent-first design
-
-All commands output structured JSON when piped or called with `--json`:
+Typical agent workflow:
 
 ```bash
-genmedia run fal-ai/flux/dev --prompt "a cat" --json
-genmedia models "text to video" --json | jq '.models[]'
+# 1. One-time setup (or set KVIDAI_API_KEY in env)
+kvidai setup --non-interactive --api-key "$KVIDAI_API_KEY"
+
+# 2. Create a project
+PROJECT_ID=$(kvidai project create "Agent test" --json | jq -r .id)
+
+# 3. Generate video
+kvidai video generate "$PROJECT_ID" "Make a 10s intro for our product" --verbose
+
+# 4. Or async text-to-video with polling
+kvidai video t2v "product showcase, 10s" --wait --output ./result.mp4
 ```
 
-To get a machine-readable description of all commands for use in a system prompt or agent context:
+## Skills
+
+Install the kvidai skill bundle to give your AI agent knowledge of the CLI:
 
 ```bash
-genmedia --help --json
+kvidai init
 ```
 
-This returns a full schema of every command, its arguments, and options. Agents that don't support MCP (Codex, Gemini CLI, etc.) can use fal.ai through `genmedia` via standard shell commands.
+This installs skills under `.agents/skills/` and symlinks them into `.claude/skills/` (Claude Code) automatically.
 
-## License
+## Build from Source
 
-MIT
+Requires [Bun](https://bun.sh) 1.x.
+
+```bash
+bun install
+bun run build          # → dist/kvidai (single binary)
+bun run typecheck      # tsc --noEmit
+bun run check          # biome lint + format check
+```

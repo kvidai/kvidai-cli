@@ -6,7 +6,7 @@ import { colors } from "../../lib/ui";
 export default defineCommand({
   meta: {
     name: "install",
-    description: "Install a skill from the genmedia registry",
+    description: "Install a skill from the kvidai registry",
   },
   args: {
     name: {

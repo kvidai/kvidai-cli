@@ -4,13 +4,13 @@ import { getIndex, installSkill } from "../lib/skills-install";
 import { resolveSkillsBase } from "../lib/skills-registry";
 import { colors, createSpinner, symbols } from "../lib/ui";
 
-const DEFAULT_BUNDLE = ["genmedia", "genmedia-ref"];
+const DEFAULT_BUNDLE = ["kvidai", "kvidai-ref"];
 
 export default defineCommand({
   meta: {
     name: "init",
     description:
-      "Install the default genmedia skill bundle (alias for `skills install`)",
+      "Install the default kvidai skill bundle (alias for `skills install`)",
   },
   args: {
     force: {

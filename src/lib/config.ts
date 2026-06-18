@@ -17,7 +17,7 @@ import { join } from "node:path";
 export type OutputFormat = "auto" | "json" | "standard";
 
 // In-memory representation — apiKey is always decrypted here
-export interface GenmediaConfig {
+export interface KvidaiConfig {
   apiKey?: string;
   outputFormat?: OutputFormat;
   autoLoadEnv?: boolean;
@@ -36,17 +36,17 @@ interface StoredConfig {
   latestKnownVersion?: string;
 }
 
-export const CONFIG_DIR = join(userInfo().homedir, ".genmedia");
+export const CONFIG_DIR = join(userInfo().homedir, ".kvidai");
 const CONFIG_FILE = join(CONFIG_DIR, "config.json");
 
-let _cached: GenmediaConfig | null = null;
+let _cached: KvidaiConfig | null = null;
 
 // Derives a 256-bit key from machine identity (hostname + username).
 // Protects against accidental exposure (synced dotfiles, accidental commits,
 // backups) but does not protect against an attacker with access to the same
-// user account on the same machine — for that threat model, use FAL_KEY env var.
+// user account on the same machine — for that threat model, use KVIDAI_API_KEY env var.
 function deriveMachineKey(): Buffer {
-  const identity = `${hostname()}:${userInfo().username}:genmedia`;
+  const identity = `${hostname()}:${userInfo().username}:kvidai`;
   return createHash("sha256").update(identity).digest();
 }
 
@@ -78,7 +78,7 @@ function decryptApiKey(ciphertext: string): string | null {
   }
 }
 
-export function loadConfig(): GenmediaConfig {
+export function loadConfig(): KvidaiConfig {
   if (_cached !== null) return _cached;
   try {
     if (existsSync(CONFIG_FILE)) {
@@ -104,7 +104,7 @@ export function loadConfig(): GenmediaConfig {
   return _cached;
 }
 
-export function saveConfig(config: GenmediaConfig): void {
+export function saveConfig(config: KvidaiConfig): void {
   if (!existsSync(CONFIG_DIR)) {
     mkdirSync(CONFIG_DIR, { recursive: true });
   }

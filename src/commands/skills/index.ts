@@ -4,7 +4,7 @@ export default defineCommand({
   meta: {
     name: "skills",
     description:
-      "Install, update, and list agent skills from the genmedia registry",
+      "Install, update, and list agent skills from the kvidai registry",
   },
   subCommands: {
     list: () => import("./list").then((m) => m.default),
