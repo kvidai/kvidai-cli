@@ -18,7 +18,7 @@ curl https://cli.kvid.ai/install -fsS | bash
 irm https://cli.kvid.ai/install.ps1 | iex
 ```
 
-Both `kvidai` and `kvd` are registered as aliases after install.
+Both `kvidai` and `kvid` are registered as aliases after install.
 
 ## Setup
 
@@ -66,7 +66,7 @@ Every flag is optional — fields you don't pass keep their current values, so r
 | `KVIDAI_API_KEY` | API key (required for all commands) |
 | `KVIDAI_BASE_URL` | Override API base URL (default: `https://api.kvid.ai`) |
 | `KVIDAI_USER_EMAIL` | User email (required for `video t2v` and `assets upload`) |
-| `STRAPI_TOKEN` | Bearer token for `assets attach-media` only |
+
 | `KVIDAI_NO_UPDATE` | Set to `1` to disable automatic update checks |
 
 ## Commands
@@ -151,13 +151,6 @@ kvidai assets add-composition 42 user@example.com \
   '{"id":"asset_1","type":"image","remoteUrl":"https://cdn.kvid.ai/file.jpg"}'
 ```
 
-### `kvidai assets attach-media <projectId> <fileId1> [fileId2...]`
-
-Attach uploaded file IDs to a project's media relation. Requires `STRAPI_TOKEN`.
-
-```bash
-STRAPI_TOKEN=xxx kvidai assets attach-media 42 101 102
-```
 
 ### `kvidai upload <file> [--email <email>]`
 

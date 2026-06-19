@@ -150,8 +150,8 @@ try_symlink_local_bin() {
         return 1
     fi
 
-    # Also create kvd alias
-    ln -sf "$src" "${local_bin}/kvd" 2>/dev/null || true
+    # Also create kvid alias
+    ln -sf "$src" "${local_bin}/kvid" 2>/dev/null || true
 
     if echo "$PATH" | tr ':' '\n' | grep -qx "$local_bin"; then
         return 0
@@ -227,8 +227,8 @@ main() {
     mv "$TMP_FILE" "${BIN_DIR}/${BINARY_NAME}"
     chmod +x "${BIN_DIR}/${BINARY_NAME}"
 
-    # Create kvd alias
-    ln -sf "${BIN_DIR}/${BINARY_NAME}" "${BIN_DIR}/kvd" 2>/dev/null || true
+    # Create kvid alias
+    ln -sf "${BIN_DIR}/${BINARY_NAME}" "${BIN_DIR}/kvid" 2>/dev/null || true
 
     # Check if already on PATH
     if echo "$PATH" | tr ':' '\n' | grep -qx "$BIN_DIR"; then
@@ -268,7 +268,7 @@ main() {
     echo ""
 
     if [ "$SYMLINK_ON_PATH" = true ]; then
-        info "Installed to ${BIN_DIR}, linked into ~/.local/bin (kvidai + kvd)."
+        info "Installed to ${BIN_DIR}, linked into ~/.local/bin (kvidai + kvid)."
         info "Run 'kvidai setup' to configure your API key."
     elif [ "$PATH_CONFIGURED" = true ]; then
         info "Run 'kvidai setup' to configure your API key."

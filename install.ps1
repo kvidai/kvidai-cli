@@ -95,9 +95,9 @@ function Main {
         $DestPath = Join-Path $BinDir "$BinaryName.exe"
         Move-Item -Path $TmpFile -Destination $DestPath -Force
 
-        # Create kvd.exe alias (copy)
-        $KvdPath = Join-Path $BinDir "kvd.exe"
-        Copy-Item -Path $DestPath -Destination $KvdPath -Force
+        # Create kvid.exe alias (copy)
+        $KvidPath = Join-Path $BinDir "kvid.exe"
+        Copy-Item -Path $DestPath -Destination $KvidPath -Force
     }
     finally {
         Remove-Item -Path $TmpFile -Force -ErrorAction SilentlyContinue
