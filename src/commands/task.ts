@@ -90,7 +90,10 @@ export default defineCommand({
           const result = data as Record<string, unknown>;
           const rd = result?.data as Record<string, unknown>;
           const url =
-            rd?.result_url ?? rd?.videoUrl ?? result?.result_url ?? result?.videoUrl;
+            rd?.result_url ??
+            rd?.videoUrl ??
+            result?.result_url ??
+            result?.videoUrl;
           if (typeof url === "string") {
             const res = await fetch(url);
             const buf = Buffer.from(await res.arrayBuffer());

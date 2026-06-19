@@ -79,7 +79,8 @@ function startCli(): void {
         },
         image: {
           description: "Generate images from text prompts",
-          usage: "kvidai image generate <prompt> [--model <id>] [--size <preset>] [--num <n>] [--output <path>]",
+          usage:
+            "kvidai image generate <prompt> [--model <id>] [--size <preset>] [--num <n>] [--output <path>]",
           subcommands: {
             generate:
               "kvidai image generate <prompt> [--size square|portrait_4_3|landscape_16_9|...] [--output <path>]",

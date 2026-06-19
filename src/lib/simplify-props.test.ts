@@ -14,7 +14,9 @@ describe("simplifyProps", () => {
     const result = simplifyProps({
       properties: { prompt: { type: "string" } },
     });
-    expect(result).toEqual([{ name: "prompt", type: "string", required: false }]);
+    expect(result).toEqual([
+      { name: "prompt", type: "string", required: false },
+    ]);
   });
 
   test("marks required fields", () => {

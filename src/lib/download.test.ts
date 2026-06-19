@@ -2,10 +2,10 @@ import { describe, expect, test } from "bun:test";
 import { extractMediaRefs, formatBytes, parseDownloadFlag } from "./download";
 
 describe("formatBytes", () => {
-  test("formats bytes under 1 KB", () => expect(formatBytes(512)).toBe("512 B"));
+  test("formats bytes under 1 KB", () =>
+    expect(formatBytes(512)).toBe("512 B"));
   test("formats 1 byte", () => expect(formatBytes(1)).toBe("1 B"));
-  test("formats kilobytes", () =>
-    expect(formatBytes(1536)).toBe("1.5 KB"));
+  test("formats kilobytes", () => expect(formatBytes(1536)).toBe("1.5 KB"));
   test("formats megabytes", () =>
     expect(formatBytes(2.5 * 1024 * 1024)).toBe("2.5 MB"));
   test("formats gigabytes", () =>
@@ -120,9 +120,10 @@ describe("parseDownloadFlag", () => {
   });
 
   test("returns on with template containing tokens", () => {
-    expect(
-      parseDownloadFlag(["--download", "./out/{index}.{ext}"]),
-    ).toEqual({ mode: "on", template: "./out/{index}.{ext}" });
+    expect(parseDownloadFlag(["--download", "./out/{index}.{ext}"])).toEqual({
+      mode: "on",
+      template: "./out/{index}.{ext}",
+    });
   });
 
   test("handles --download in the middle of argv", () => {

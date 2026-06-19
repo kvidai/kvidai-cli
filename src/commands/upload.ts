@@ -2,8 +2,8 @@ import { readFileSync, statSync } from "node:fs";
 import { basename, extname } from "node:path";
 import { defineCommand } from "citty";
 import { getApiKey, PLATFORM_BASE } from "../lib/api";
-import { error, output } from "../lib/output";
 import { MIME_TYPES } from "../lib/mime";
+import { error, output } from "../lib/output";
 
 export async function presignedUpload(
   filePath: string,
@@ -13,13 +13,18 @@ export async function presignedUpload(
   const mimeType = MIME_TYPES[ext] ?? "application/octet-stream";
   const size = statSync(filePath).size;
 
-  const presignRes = await fetch(`${PLATFORM_BASE}/media/presigned-upload-url`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "api-key": getApiKey() },
-    body: JSON.stringify({ filename, mimeType, size }),
-  });
+  const presignRes = await fetch(
+    `${PLATFORM_BASE}/media/presigned-upload-url`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "api-key": getApiKey() },
+      body: JSON.stringify({ filename, mimeType, size }),
+    },
+  );
   if (!presignRes.ok)
-    error(`presigned-upload-url ${presignRes.status}: ${await presignRes.text()}`);
+    error(
+      `presigned-upload-url ${presignRes.status}: ${await presignRes.text()}`,
+    );
   const { data } = (await presignRes.json()) as {
     data: { uploadUrl: string; cdnUrl: string; key: string };
   };

@@ -4,7 +4,10 @@ import { getApiKey, PLATFORM_BASE } from "../lib/api";
 import { error, output } from "../lib/output";
 
 const generateCmd = defineCommand({
-  meta: { name: "generate", description: "Generate an image from a text prompt" },
+  meta: {
+    name: "generate",
+    description: "Generate an image from a text prompt",
+  },
   args: {
     prompt: {
       type: "positional",

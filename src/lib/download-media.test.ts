@@ -1,11 +1,4 @@
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  mock,
-  test,
-} from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -82,7 +75,9 @@ describe("downloadMedia", () => {
 
   test("derives file name from URL when file_name is absent", async () => {
     globalThis.fetch = makeOkFetch();
-    const refs = extractMediaRefs({ url: "https://cdn.example.com/output.mp4" });
+    const refs = extractMediaRefs({
+      url: "https://cdn.example.com/output.mp4",
+    });
     const { downloaded } = await downloadMedia({
       refs,
       template: `${dir}/`,
