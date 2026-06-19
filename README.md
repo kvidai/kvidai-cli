@@ -251,10 +251,10 @@ bun run check          # biome lint + format check
 
 ## Releasing
 
-**트리거: `git push origin vX.Y.Z` (태그 push)**
+**Trigger: `git push origin vX.Y.Z` (tag push only)**
 
-commit message나 `package.json` version 변경 자체는 CI를 트리거하지 않는다.
-`.github/workflows/release.yml`은 `v*.*.*` 패턴의 태그가 push될 때만 발동한다.
+Changing `package.json` version or the commit message does NOT trigger CI.
+`.github/workflows/release.yml` fires only when a tag matching `v*.*.*` is pushed.
 
 ```
 on:
@@ -263,29 +263,28 @@ on:
       - "v[0-9]+.[0-9]+.[0-9]+*"
 ```
 
-`package.json` version은 빌드 중 태그명과 일치하는지 검증하는 용도다 — 불일치 시 CI 실패.
-commit message `chore: X.Y.Z release`는 히스토리 가독성용 컨벤션이며 CI가 읽지 않는다.
+`package.json` version is used to verify it matches the tag name during the build — mismatch fails CI.
+The commit message `chore: X.Y.Z release` is a history convention only; CI does not read it.
 
-**릴리스 절차**
+**Release steps**
 
 ```bash
-# 1. version bump
-#    package.json "version": "X.Y.Z" 수정 후 커밋
+# 1. Bump version in package.json, then commit
 git add package.json
 git commit -m "chore: X.Y.Z release"
 
-# 2. main 머지 + push
+# 2. Merge to main and push
 git checkout main
 git merge develop --ff-only
 git push origin main
 
-# 3. 태그 push → 이 시점에 release.yml 발동
+# 3. Push tag — this is what triggers release.yml
 git tag vX.Y.Z
 git push origin vX.Y.Z
 
-# 4. develop 동기화
+# 4. Sync develop
 git checkout develop
 git push origin develop
 ```
 
-Pre-release 버전(`0.4.0-alpha.0` 등)은 버전 문자열로 자동 감지되어 GitHub에 pre-release로 표시된다.
+Pre-release versions (e.g. `0.4.0-alpha.0`) are auto-detected from the version string and marked as pre-release on GitHub.
