@@ -248,3 +248,44 @@ bun run build          # → dist/kvidai (single binary)
 bun run typecheck      # tsc --noEmit
 bun run check          # biome lint + format check
 ```
+
+## Releasing
+
+**트리거: `git push origin vX.Y.Z` (태그 push)**
+
+commit message나 `package.json` version 변경 자체는 CI를 트리거하지 않는다.
+`.github/workflows/release.yml`은 `v*.*.*` 패턴의 태그가 push될 때만 발동한다.
+
+```
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+```
+
+`package.json` version은 빌드 중 태그명과 일치하는지 검증하는 용도다 — 불일치 시 CI 실패.
+commit message `chore: X.Y.Z release`는 히스토리 가독성용 컨벤션이며 CI가 읽지 않는다.
+
+**릴리스 절차**
+
+```bash
+# 1. version bump
+#    package.json "version": "X.Y.Z" 수정 후 커밋
+git add package.json
+git commit -m "chore: X.Y.Z release"
+
+# 2. main 머지 + push
+git checkout main
+git merge develop --ff-only
+git push origin main
+
+# 3. 태그 push → 이 시점에 release.yml 발동
+git tag vX.Y.Z
+git push origin vX.Y.Z
+
+# 4. develop 동기화
+git checkout develop
+git push origin develop
+```
+
+Pre-release 버전(`0.4.0-alpha.0` 등)은 버전 문자열로 자동 감지되어 GitHub에 pre-release로 표시된다.
