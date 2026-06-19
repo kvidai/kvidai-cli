@@ -1,0 +1,173 @@
+{
+  "version": 1,
+  "skills": [
+    {
+      "name": "character-design",
+      "description": "Build consistent character designs and character media with kvidai. Use this for original characters, reference sheets, expression sheets, outfit variations, identity-preserving edits, and character-to-video workflows.",
+      "files": [
+        {
+          "path": "SKILL.md",
+          "sha256": "a273ed3051fb94dd2210e7fa7ef9dc97b1178cac59e55a616bea778351595721",
+          "bytes": 5122
+        },
+        {
+          "path": "references/anchor-system.md",
+          "sha256": "397f23ee81160990aad789931649aded955314c583539665fb89f1bf15831acd",
+          "bytes": 1898
+        },
+        {
+          "path": "references/examples.md",
+          "sha256": "1980d83b82d2ee18417aa3d704a30c4ad17b17e93a3676ed0be1508e64dd849f",
+          "bytes": 2028
+        },
+        {
+          "path": "references/prompt-patterns.md",
+          "sha256": "256ba5364c0b9b52538774e1c307ec1e8dbeffcd5cd85950e2b3551bcac382bc",
+          "bytes": 1880
+        }
+      ]
+    },
+    {
+      "name": "cinematography",
+      "description": "Design cinematic image and video prompts for kvidai. Use this for shot language, camera movement, lighting, lens choices, color grade, film texture, scene blocking, and production-ready visual direction.",
+      "files": [
+        {
+          "path": "SKILL.md",
+          "sha256": "7993e4d8fdf199766fdc1142694693819e944268246fef03ccce38e3fe39bcbe",
+          "bytes": 4897
+        },
+        {
+          "path": "references/examples.md",
+          "sha256": "e143734e15f79411240056f22b9def4d8053b11cb54958213e68eec9899778c8",
+          "bytes": 1674
+        },
+        {
+          "path": "references/lighting-lens-color.md",
+          "sha256": "e9bbe4c61c98c0cf98cb652101b0e16f670184d7236e5509e9abc2e8de195f2a",
+          "bytes": 1995
+        },
+        {
+          "path": "references/shot-language.md",
+          "sha256": "21ca47d38ae6388293c410c4181fd2d84f8058fbcd36bf3db5d1643179e3faaf",
+          "bytes": 1901
+        }
+      ]
+    },
+    {
+      "name": "commercial",
+      "description": "Plan and run commercial image or video production with kvidai. Use this for product photography, ads, e-commerce batches, product reveals, lifestyle commercials, background replacement, social formats, and brand-safe prompt work.",
+      "files": [
+        {
+          "path": "SKILL.md",
+          "sha256": "f1d23fde9aab75b1ea9ca6e9c69ce009d50c872cfb83fe89b577411912ed89ad",
+          "bytes": 6082
+        },
+        {
+          "path": "references/examples.md",
+          "sha256": "529a12813026c6f77c5171b99cfb966b57c81b36594626e8dd7a5eed81c7ba15",
+          "bytes": 1818
+        },
+        {
+          "path": "references/prompt-patterns.md",
+          "sha256": "491aaf66cac663b453d395b0a3c690f3da1a11a93292361b6589a6d6fec26be4",
+          "bytes": 2620
+        },
+        {
+          "path": "references/workflows.md",
+          "sha256": "7660a1d56fece80447152bf2aa3d51bab90b6cac2239b4f592291b88e70bc1f0",
+          "bytes": 2107
+        }
+      ]
+    },
+    {
+      "name": "kvidai",
+      "description": "Run a kvid.ai model end-to-end with the kvidai CLI. Use this when the user asks to generate an image, video, or audio; convert media; upscale or restyle; run any kvid.ai model; or \"use kvidai\" for a task. Guides discovery, schema inspection, input preparation, execution, and result handling.",
+      "files": [
+        {
+          "path": "SKILL.md",
+          "sha256": "7c309ff9e48f61bb23a8d243cfcbca88e07c81c7fb1baf414fb6b6a378f617fe",
+          "bytes": 4022
+        }
+      ]
+    },
+    {
+      "name": "kvidai-ref",
+      "description": "Complete kvidai CLI reference for kvid.ai — consult this whenever the user asks you to search for models, run inference, upload files, check pricing, or manage async jobs on kvid.ai. Use --json on every command to get structured output you can parse.",
+      "files": [
+        {
+          "path": "SKILL.md",
+          "sha256": "ad00e4f6a48c53980a7099982a8005ebe93ea47cb559422d16a1994c0716381a",
+          "bytes": 8915
+        }
+      ]
+    },
+    {
+      "name": "model-routing",
+      "description": "Choose default kvid.ai endpoint IDs for kvidai production skills. Use this with commercial, character-design, cinematography, storytelling, and workflow when the user has not named a specific model.",
+      "files": [
+        {
+          "path": "SKILL.md",
+          "sha256": "c812f490c56bf5719ce79b8c52b2704e93e68752458e1f9424339e326d722f0a",
+          "bytes": 4704
+        }
+      ]
+    },
+    {
+      "name": "storytelling",
+      "description": "Build multi-shot narrative image, video, and audio workflows with kvidai. Use this for storyboards, shot lists, multi-prompt video, first-frame to last-frame pipelines, social stories, brand films, and sequence continuity.",
+      "files": [
+        {
+          "path": "SKILL.md",
+          "sha256": "7f50a19ef600e5d5fb7b8146c29fc06f5987026e41c5556d0772e22f0b34318d",
+          "bytes": 5618
+        },
+        {
+          "path": "references/examples.md",
+          "sha256": "1b882303a6e7546896c4045a0b57f70cb2cd60afb8217ff8266865215ef0e507",
+          "bytes": 2802
+        },
+        {
+          "path": "references/shot-planning.md",
+          "sha256": "8ceccbda8fdeab87f1c4c5f1303562d3d37eca8f461e219e3650e22eb280ba4c",
+          "bytes": 1883
+        },
+        {
+          "path": "references/workflows.md",
+          "sha256": "aae3df2daa02841e29ea93c8bca31bcff4d9b4bba171d4aa5d6322a782d54861",
+          "bytes": 2092
+        }
+      ]
+    },
+    {
+      "name": "workflow",
+      "description": "Design and execute multi-step media workflows with kvidai. Use this for pipelines that combine planning, generation, editing, image or video utilities, audio, subtitles, batching, and final delivery manifests.",
+      "files": [
+        {
+          "path": "SKILL.md",
+          "sha256": "16df35dcef5340b95bf6fd13c8c22f5e29a36f3f020e9116da787960c74ad332",
+          "bytes": 5145
+        },
+        {
+          "path": "references/node-rules.md",
+          "sha256": "6d10a419ac36afd6452b41305a54d8e93bef24cbfab21e8fdc0e3f15e08daba0",
+          "bytes": 2819
+        },
+        {
+          "path": "references/pipeline-patterns.md",
+          "sha256": "7164764754fae4f43c7798e85e5363327a7af4abe48c3e8df6fa0981358cebe7",
+          "bytes": 3621
+        },
+        {
+          "path": "references/recipes.md",
+          "sha256": "c5b332b61fc557595ce2e9e992ec9e9944936008db9ac064b9872d12696a4a7e",
+          "bytes": 3036
+        },
+        {
+          "path": "references/utility-endpoints.md",
+          "sha256": "950b0efac823830385de6d11be67f0b07fe29336c1a194147b04eb8e8ab8d07b",
+          "bytes": 3400
+        }
+      ]
+    }
+  ]
+}

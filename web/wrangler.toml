@@ -1,0 +1,8 @@
+name = "kvidai-cli-web"
+main = ".open-next/worker.js"
+compatibility_date = "2025-06-18"
+compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
