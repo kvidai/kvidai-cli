@@ -34,10 +34,6 @@ jobs:
             artifact: kvidai
             platform: linux-arm64
             os: ubuntu-24.04-arm
-          - target: bun-darwin-x64
-            artifact: kvidai
-            platform: darwin-x64
-            os: macos-13
           - target: bun-darwin-arm64
             artifact: kvidai
             platform: darwin-arm64
@@ -131,7 +127,6 @@ jobs:
           mkdir -p release
           cp dist/linux-x64/kvidai release/kvidai-linux-x64
           cp dist/linux-arm64/kvidai release/kvidai-linux-arm64
-          cp dist/darwin-x64/kvidai release/kvidai-darwin-x64
           cp dist/darwin-arm64/kvidai release/kvidai-darwin-arm64
           cp dist/windows-x64/kvidai.exe release/kvidai-windows-x64.exe
 
