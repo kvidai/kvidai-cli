@@ -171,12 +171,16 @@ kvidai upload ./logo.png --json
 ### `kvidai skills <list|install|update|remove>`
 
 Manage agent skill bundles (install under `.agents/skills/`, symlinked into `.claude/skills/`).
+These are **model-runner skills** — they teach your agent how to call the kvidai CLI.
 
 ```bash
-kvidai init                     # install default kvidai skill bundle
-kvidai skills list              # list available skills
-kvidai skills install kvidai-video-project
+kvidai init                        # install default kvidai skill bundle
+kvidai skills list                 # list available skills from the registry
+kvidai skills install kvidai       # install the core kvidai workflow skill
+kvidai skills install cinematography  # install a style/technique skill
 ```
+
+Available skills: `kvidai`, `kvidai-ref`, `model-routing`, `storytelling`, `commercial`, `character-design`, `cinematography`, `workflow`.
 
 ### `kvidai version`
 
@@ -212,13 +216,34 @@ kvidai video t2v "product showcase, 10s" --wait --output ./result.mp4
 
 ## Skills
 
-Install the kvidai skill bundle to give your AI agent knowledge of the CLI:
+### CLI-bundled skills (model runner)
+
+Install the kvidai skill bundle to give your AI agent (Claude Code, Cursor, etc.) knowledge of the CLI commands:
 
 ```bash
 kvidai init
 ```
 
 This installs skills under `.agents/skills/` and symlinks them into `.claude/skills/` (Claude Code) automatically.
+These skills teach the agent how to call `kvidai run`, `kvidai schema`, `kvidai upload`, etc. — **the CLI binary must be installed on the same machine.**
+
+### kvidai-skills (video platform workflows, CLI-free)
+
+For video project management, preset CRUD, media upload, and conversation-driven video editing — without requiring the kvidai CLI — use the separate skill pack that calls api.kvid.ai directly:
+
+```bash
+npx skills add epicmobile18/kvidai-skills
+```
+
+Works with Claude Code, ChatGPT, Codex, Goose, Copilot, and [50+ agents](https://github.com/vercel-labs/skills).
+See [kvidai-skills on GitHub](https://github.com/epicmobile18/kvidai-skills) for the full skill list.
+
+**When to use which:**
+
+| Situation | Use |
+|---|---|
+| Generate images/video/audio with a kvid.ai model, CLI installed locally | CLI-bundled skills (`kvidai init`) |
+| Manage video projects, presets, media — or edit video by conversation — any agent, no CLI required | kvidai-skills (`npx skills add`) |
 
 ## Build from Source
 

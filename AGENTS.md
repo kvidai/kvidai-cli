@@ -50,6 +50,12 @@ These instructions apply to the repository root unless a deeper `AGENTS.md` over
 
 ## Skills
 
+There are two separate skill channels — do not conflate them:
+
+- **`skills/` (this repo)** — model-runner skills bundled with the CLI. Teach agents how to call `kvidai run`, `kvidai schema`, `kvidai upload`, etc. Require the kvidai binary on the same machine. Installed via `kvidai init` or `kvidai skills install <name>`.
+- **`epicmobile18/kvidai-skills` (separate repo/submodule)** — video platform workflow skills (project SSE generation, preset CRUD, media, conversation-driven video editing). Call `api.kvid.ai` directly via Node.js scripts — no CLI binary required. Installed via `npx skills add epicmobile18/kvidai-skills`.
+
+For bundled skills in this repo:
 - Treat each directory in `skills/` as a published bundle.
 - If you add or modify bundled skills, regenerate or verify `skills/index.json` with `bun run skills:index` or `bun run skills:index:check`.
 - Keep skill names, descriptions, and directory names in sync with `SKILL.md` frontmatter.
