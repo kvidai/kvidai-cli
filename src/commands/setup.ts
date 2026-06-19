@@ -29,6 +29,7 @@ function summaryPayload(config: KvidaiConfig) {
     ok: true,
     configPath: `${CONFIG_DIR}/config.json`,
     apiKey: config.apiKey ? maskSecret(config.apiKey) : null,
+    userEmail: config.userEmail ?? null,
     outputFormat: config.outputFormat ?? "auto",
     autoLoadEnv: Boolean(config.autoLoadEnv),
     autoUpdate: Boolean(config.autoUpdate),
@@ -72,6 +73,11 @@ export default defineCommand({
       description:
         "Enable background update checks. Use --no-auto-update to disable.",
     },
+    email: {
+      type: "string",
+      description:
+        "User email for video generation and asset upload (use an empty string to clear). Only applied with --non-interactive.",
+    },
   },
   async run({ args }) {
     const nonInteractive = Boolean(args["non-interactive"]);
@@ -112,6 +118,16 @@ async function runNonInteractive(args: Record<string, unknown>): Promise<void> {
       next.apiKey = trimmed;
     } else {
       delete next.apiKey;
+    }
+  }
+
+  const rawEmail = args["email"];
+  if (typeof rawEmail === "string") {
+    const trimmed = rawEmail.trim();
+    if (trimmed === "") {
+      delete next.userEmail;
+    } else {
+      next.userEmail = trimmed;
     }
   }
 
@@ -193,6 +209,25 @@ async function runInteractive(): Promise<void> {
     }
 
     printLine();
+    printLine(colors.bold("User email"));
+    printLine(
+      "  Required for video generation and asset upload (KVIDAI_USER_EMAIL).",
+    );
+    if (current.userEmail) {
+      printLine(`  Current email: ${current.userEmail}`);
+    }
+
+    const emailInput = (
+      await promptText({
+        message: current.userEmail
+          ? "Enter a new email (leave blank to keep the current one)"
+          : "Enter your email (leave blank to skip)",
+      })
+    ).trim();
+
+    const userEmail = emailInput || current.userEmail;
+
+    printLine();
     printLine(colors.bold("Project environment loading"));
     printLine(
       "  Auto-load KVIDAI_API_KEY and related variables from a local .env file.",
@@ -247,6 +282,7 @@ async function runInteractive(): Promise<void> {
 
     const config: KvidaiConfig = {
       ...(apiKey ? { apiKey } : {}),
+      ...(userEmail ? { userEmail } : {}),
       outputFormat,
       autoLoadEnv,
       autoUpdate,
@@ -265,6 +301,7 @@ async function runInteractive(): Promise<void> {
     } else {
       printLine("  API key: not saved");
     }
+    printLine(`  Email: ${userEmail ?? "not saved"}`);
     printLine(`  Output mode: ${outputFormat}`);
     printLine(`  Auto-load .env: ${autoLoadEnv ? "yes" : "no"}`);
     printLine(`  Automatic updates: ${autoUpdate ? "yes" : "no"}`);

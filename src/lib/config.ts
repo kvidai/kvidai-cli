@@ -20,6 +20,7 @@ export type OutputFormat = "auto" | "json" | "standard";
 // In-memory representation — apiKey is always decrypted here
 export interface KvidaiConfig {
   apiKey?: string;
+  userEmail?: string;
   outputFormat?: OutputFormat;
   autoLoadEnv?: boolean;
   autoUpdate?: boolean;
@@ -32,6 +33,7 @@ export interface KvidaiConfig {
 // On-disk representation — apiKey is stored encrypted, never plaintext
 interface StoredConfig {
   apiKey?: string;
+  userEmail?: string;
   outputFormat?: OutputFormat;
   autoLoadEnv?: boolean;
   autoUpdate?: boolean;
@@ -92,6 +94,7 @@ export function loadConfig(): KvidaiConfig {
       ) as StoredConfig;
       _cached = {
         outputFormat: stored.outputFormat,
+        userEmail: stored.userEmail,
         autoLoadEnv: stored.autoLoadEnv,
         autoUpdate: stored.autoUpdate,
         lastUpdateCheckAt: stored.lastUpdateCheckAt,
@@ -117,6 +120,7 @@ export function saveConfig(config: KvidaiConfig): void {
   }
   const stored: StoredConfig = {
     outputFormat: config.outputFormat,
+    userEmail: config.userEmail,
     autoLoadEnv: config.autoLoadEnv,
     autoUpdate: config.autoUpdate,
     lastUpdateCheckAt: config.lastUpdateCheckAt,

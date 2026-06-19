@@ -1,6 +1,7 @@
 import { writeFileSync } from "node:fs";
 import { defineCommand } from "citty";
 import { getApiKey, PLATFORM_BASE } from "../lib/api";
+import { loadConfig } from "../lib/config";
 import { error, isJsonOutput, output } from "../lib/output";
 import { pollStatus } from "./task";
 
@@ -168,7 +169,7 @@ const t2vCmd = defineCommand({
   async run({ args }) {
     const body: Record<string, unknown> = {
       prompt: args.prompt,
-      userEmail: process.env.KVIDAI_USER_EMAIL,
+      userEmail: process.env.KVIDAI_USER_EMAIL ?? loadConfig().userEmail,
     };
     if (args.model) body.model = args.model;
     if (args.duration) body.duration = Number(args.duration);
