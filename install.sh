@@ -63,9 +63,6 @@ detect_platform() {
         *) error "Unsupported architecture: $ARCH" ;;
     esac
 
-    if [ "$PLATFORM" = "darwin" ] && [ "$ARCH" = "x64" ]; then
-        error "Intel Mac is not supported. kvidai requires Apple Silicon (M1 or later)."
-    fi
 }
 
 get_latest_version() {
