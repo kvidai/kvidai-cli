@@ -66,7 +66,6 @@ Every flag is optional — fields you don't pass keep their current values, so r
 | `KVIDAI_API_KEY` | API key (required for all commands) |
 | `KVIDAI_BASE_URL` | Override API base URL (default: `https://api.kvid.ai`) |
 | `KVIDAI_USER_EMAIL` | User email (required for `video t2v` and `assets upload`) |
-
 | `KVIDAI_NO_UPDATE` | Set to `1` to disable automatic update checks |
 
 ## Commands
@@ -163,8 +162,7 @@ kvidai upload ./logo.png --json
 
 ### `kvidai skills <list|install|update|remove>`
 
-Manage agent skill bundles (install under `.agents/skills/`, symlinked into `.claude/skills/`).
-These are **model-runner skills** — they teach your agent how to call the kvidai CLI.
+Manage agent skill bundles, fetched from the [kvidai-skills](https://github.com/kvidai/kvidai-skills) registry. Installs into `.claude/skills/`, `.cursor/rules/`, and `AGENTS.md` automatically (whichever agent tooling is present in the project — use `--no-cursor`/`--no-agents-md`/`--targets` to limit).
 
 ```bash
 kvidai init                        # install default kvidai skill bundle
@@ -173,7 +171,7 @@ kvidai skills install kvidai       # install the core kvidai workflow skill
 kvidai skills install cinematography  # install a style/technique skill
 ```
 
-Available skills: `kvidai`, `kvidai-ref`, `model-routing`, `storytelling`, `commercial`, `character-design`, `cinematography`, `workflow`.
+Skills that need the CLI binary say so in their `SKILL.md` (marked "Requires: the kvidai CLI"). See [kvidai-skills on GitHub](https://github.com/kvidai/kvidai-skills) for the full list.
 
 ### `kvidai version`
 
@@ -209,34 +207,19 @@ kvidai video t2v "product showcase, 10s" --wait --output ./result.mp4
 
 ## Skills
 
-### CLI-bundled skills (model runner)
-
-Install the kvidai skill bundle to give your AI agent (Claude Code, Cursor, etc.) knowledge of the CLI commands:
+All kvidai agent skills live in one registry: [kvidai/kvidai-skills](https://github.com/kvidai/kvidai-skills). Give your AI agent (Claude Code, Cursor, etc.) knowledge of the CLI commands with:
 
 ```bash
 kvidai init
 ```
 
-This installs skills under `.agents/skills/` and symlinks them into `.claude/skills/` (Claude Code) automatically.
-These skills teach the agent how to call `kvidai run`, `kvidai schema`, `kvidai upload`, etc. — **the CLI binary must be installed on the same machine.**
-
-### kvidai-skills (video platform workflows, CLI-free)
-
-For video project management, preset CRUD, media upload, and conversation-driven video editing — without requiring the kvidai CLI — use the separate skill pack that calls api.kvid.ai directly:
+Or install the whole registry with any agent via [`npx skills add`](https://github.com/vercel-labs/skills):
 
 ```bash
-npx skills add epicmobile18/kvidai-skills
+npx skills add kvidai/kvidai-skills
 ```
 
-Works with Claude Code, ChatGPT, Codex, Goose, Copilot, and [50+ agents](https://github.com/vercel-labs/skills).
-See [kvidai-skills on GitHub](https://github.com/epicmobile18/kvidai-skills) for the full skill list.
-
-**When to use which:**
-
-| Situation | Use |
-|---|---|
-| Generate images/video/audio with a kvid.ai model, CLI installed locally | CLI-bundled skills (`kvidai init`) |
-| Manage video projects, presets, media — or edit video by conversation — any agent, no CLI required | kvidai-skills (`npx skills add`) |
+Some skills teach the agent how to call this CLI (`kvidai run`, `kvidai schema`, `kvidai upload`, etc.) — **the CLI binary must be installed on the same machine** for those. Others (video project management, preset CRUD, media upload, conversation-driven editing) call `api.kvid.ai` directly and need no CLI. Each skill's `SKILL.md` states which applies.
 
 ## Build from Source
 

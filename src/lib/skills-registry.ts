@@ -9,7 +9,7 @@ import {
 import { dirname, join, relative, resolve } from "node:path";
 
 const DEFAULT_REGISTRY_URL =
-  "https://raw.githubusercontent.com/kvidai/kvidai-cli/refs/heads/main/skills";
+  "https://raw.githubusercontent.com/kvidai/kvidai-skills/refs/heads/main/skills";
 
 export const AGENT_ROOTS = [".agents", ".claude"] as const;
 const SKILLS_SUBDIR = "skills";
@@ -32,6 +32,14 @@ export interface SkillsIndex {
   skills: SkillEntry[];
 }
 
+export type InstalledTargetKind = "claude" | "cursor" | "agents-md";
+
+export interface InstalledTarget {
+  kind: InstalledTargetKind;
+  paths: string[];
+  sha256: Record<string, string>;
+}
+
 export interface InstalledSkill {
   name: string;
   description: string;
@@ -39,6 +47,7 @@ export interface InstalledSkill {
   sha256: Record<string, string>;
   installedAt: string;
   source: string;
+  targets?: InstalledTarget[];
 }
 
 export interface InstalledManifest {
