@@ -9,7 +9,6 @@ These instructions apply to the repository root unless a deeper `AGENTS.md` over
 - `src/index.ts` is the CLI entrypoint and lazy-loads subcommands.
 - `src/commands/` contains one file per command or command group.
 - `src/lib/` contains shared runtime helpers for config, API access, output, and UI.
-- `skills/` contains bundled skills. `skills/index.json` is generated from those directories.
 - `scripts/` contains build and maintenance scripts.
 
 ## Working conventions
@@ -50,15 +49,11 @@ These instructions apply to the repository root unless a deeper `AGENTS.md` over
 
 ## Skills
 
-There are two separate skill channels — do not conflate them:
+All agent skills live in [`kvidai/kvidai-skills`](https://github.com/kvidai/kvidai-skills) (separate repo, not a submodule of this one). `src/lib/skills-registry.ts`'s `DEFAULT_REGISTRY_URL` points at its `main` branch — this repo has no bundled `skills/` directory of its own. This split exists so `kvidai skills install` / `kvidai init` keep working even if this repo's visibility changes.
 
-- **`skills/` (this repo)** — model-runner skills bundled with the CLI. Teach agents how to call `kvidai run`, `kvidai schema`, `kvidai upload`, etc. Require the kvidai binary on the same machine. Installed via `kvidai init` or `kvidai skills install <name>`.
-- **`kvidai/kvidai-skills` (separate repo/submodule)** — video platform workflow skills (project SSE generation, preset CRUD, media, conversation-driven video editing). Call `api.kvid.ai` directly via Node.js scripts — no CLI binary required. Installed via `npx skills add kvidai/kvidai-skills`.
+Some skills there teach agents how to call `kvidai run`, `kvidai schema`, `kvidai upload`, etc. and require the kvidai binary on the same machine (marked "Requires: the kvidai CLI" under the title in their `SKILL.md`); others call `api.kvid.ai` directly via Node.js and need no CLI. Installed via `kvidai init` / `kvidai skills install <name>` (this CLI) or `npx skills add kvidai/kvidai-skills` (any agent).
 
-For bundled skills in this repo:
-- Treat each directory in `skills/` as a published bundle.
-- If you add or modify bundled skills, regenerate or verify `skills/index.json` with `bun run skills:index` or `bun run skills:index:check`.
-- Keep skill names, descriptions, and directory names in sync with `SKILL.md` frontmatter.
+To add or modify a skill, work in the `kvidai/kvidai-skills` repo directly — see its `AGENTS.md` for `scripts/build-skills-index.ts` and the index-regeneration steps.
 
 ## Validation
 
@@ -67,7 +62,6 @@ For bundled skills in this repo:
   - `bun run typecheck`
   - `bun run check`
   - `bun run build`
-  - `bun run skills:index:check` when touching `skills/`
 - Run broader build validation when changing packaging, generated artifacts, or command registration.
 
 ## Documentation
