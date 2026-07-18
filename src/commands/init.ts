@@ -5,7 +5,7 @@ import { getIndex, installSkill } from "../lib/skills-install";
 import { resolveSkillsBase } from "../lib/skills-registry";
 import { colors, createSpinner, symbols } from "../lib/ui";
 
-const DEFAULT_BUNDLE = ["kvidai", "kvidai-ref"];
+const DEFAULT_BUNDLE = ["kvidai"];
 
 const VALID_TARGETS: readonly AgentTargetKind[] = [
   "claude",

@@ -89,9 +89,25 @@ Pre-release versions (e.g. `0.4.0-alpha.0`) are auto-detected from the version s
 
 > **Requires**: the [kvidai CLI](https://github.com/kvidai/kvidai-cli) installed locally (`kvidai --version` to check).
 
-kvidai has a small, fixed set of generation commands — there is no model
-catalog to search and no per-model schema to inspect. Load `kvidai-ref`
-alongside this skill for the full command reference.
+kvidai has a small, fixed set of commands and emits structured JSON when
+called with `--json` or when stdout is not a TTY. There is no model
+catalog to search and no per-model schema to inspect — the command set
+below is the complete surface.
+
+## Authentication
+
+kvidai reads credentials from (in priority order):
+
+1. `KVIDAI_API_KEY` environment variable
+2. `~/.kvidai/config.json` (written by `kvidai setup`)
+3. A project `.env` file (if auto-load is enabled via `kvidai setup`)
+
+```
+kvidai setup --non-interactive --api-key <key> --json    # agents/CI
+kvidai setup                                              # interactive wizard
+```
+
+`KVIDAI_USER_EMAIL` is also required for `video t2v` and `assets upload`.
 
 ## Steps
 
@@ -133,65 +149,7 @@ alongside this skill for the full command reference.
    — for `video generate`, point the user at the returned editor `url`
    instead of a raw file.
 
-## Handling errors
-
-Every command exits non-zero on failure and writes a JSON object to stderr:
-
-```json
-{
-  "error": "image/generate 422: {\"message\":\"prompt is required\"}",
-  "details": { "hint": "..." }
-}
-```
-
-- `error` is a one-line summary — often includes the raw HTTP status and
-  response body, since these commands don't do FastAPI-style structured
-  validation.
-- `details` is present only for some errors (e.g. missing API key includes
-  a `hint` with setup instructions). Don't assume a fixed shape beyond
-  `error`.
-- No API key configured → run `kvidai setup --non-interactive --api-key <key>`
-  (agents/CI) or point the user at `kvidai setup` (interactive).
-
-## Notes
-
-- Always use `--json` so output is machine-readable.
-- `kvidai docs <query>` does **not** perform a real search — it just prints
-  static links to `docs.kvid.ai` and `api.kvid.ai/docs`. Don't rely on its
-  output for anything beyond those URLs.
-- There is no `--model` catalog to browse: `image generate` / `video t2v`
-  accept an optional `--model <id>` but fall back to a server-side default
-  if omitted — don't invent endpoint IDs.
-<!-- END kvidai:kvidai -->
-
-<!-- BEGIN kvidai:kvidai-ref -->
-## kvidai-ref
-
-# kvidai CLI reference
-
-> **Requires**: the [kvidai CLI](https://github.com/kvidai/kvidai-cli) installed locally (`kvidai --version` to check).
-
-kvidai is an agent-first CLI for kvid.ai. Every command emits structured JSON
-when called with `--json` or when stdout is not a TTY. There is no model
-catalog or per-model schema to inspect — the command set below is the
-complete, fixed surface.
-
-## Authentication
-
-kvidai reads credentials from (in priority order):
-
-1. `KVIDAI_API_KEY` environment variable
-2. `~/.kvidai/config.json` (written by `kvidai setup`)
-3. A project `.env` file (if auto-load is enabled via `kvidai setup`)
-
-```
-kvidai setup --non-interactive --api-key <key> --json    # agents/CI
-kvidai setup                                              # interactive wizard
-```
-
-`KVIDAI_USER_EMAIL` is also required for `video t2v` and `assets upload`.
-
-## Commands
+## Command reference
 
 ### project — create and inspect video projects
 
@@ -268,21 +226,25 @@ This does **not** perform a search — `query` is accepted but ignored. It
 always returns the same static links (`docs.kvid.ai`, `api.kvid.ai/docs`).
 Don't build a "discover via docs" step around this command.
 
-## Error output
+## Handling errors
 
 Every command exits non-zero on failure and writes a JSON object to stderr:
 
 ```json
 {
-  "error": "<one-line summary, often includes raw HTTP status + body>",
-  "details": { "...": "shape varies by command, may be absent" }
+  "error": "image/generate 422: {\"message\":\"prompt is required\"}",
+  "details": { "hint": "..." }
 }
 ```
 
 There is no standardized `validation_errors`/`endpoint_id`/`request_id`
-schema — read `error` for the summary, and `details` (when present) for
-extra context such as a `hint` on auth failures. On a 4xx, fix the request
-and retry; on 429/5xx, a short backoff-and-retry is reasonable.
+schema — `error` is a one-line summary (often including the raw HTTP status
+and response body, since these commands don't do FastAPI-style structured
+validation), and `details` (when present) has extra context such as a
+`hint` on auth failures. On a 4xx, fix the request and retry; on 429/5xx,
+a short backoff-and-retry is reasonable. No API key configured → run
+`kvidai setup --non-interactive --api-key <key>` (agents/CI) or point the
+user at `kvidai setup` (interactive).
 
 ## Common workflows
 
@@ -318,4 +280,12 @@ kvidai project create "Product launch" --json
 kvidai video generate <projectId> "make a 10s intro for our product" --verbose --json
 kvidai video generate <projectId> "make the intro faster-paced" --verbose --json
 ```
-<!-- END kvidai:kvidai-ref -->
+
+## Notes
+
+- Always use `--json` so output is machine-readable.
+- `kvidai docs <query>` does **not** perform a real search — see above.
+- There is no `--model` catalog to browse: `image generate` / `video t2v`
+  accept an optional `--model <id>` but fall back to a server-side default
+  if omitted — don't invent endpoint IDs.
+<!-- END kvidai:kvidai -->
