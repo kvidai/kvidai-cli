@@ -21,3 +21,12 @@ jobs:
 
       - name: Build
         run: bun build --compile --minify --bytecode --target=bun-linux-x64 src/index.ts --outfile dist/kvidai
+
+      - name: Smoke test binary
+        env:
+          KVIDAI_NO_UPDATE: "1"
+        run: |
+          chmod +x dist/kvidai || true
+          ./dist/kvidai --json > /dev/null
+          ./dist/kvidai version --json > /dev/null
+          echo "smoke test passed: linux-x64"

@@ -86,6 +86,23 @@ jobs:
             src/index.ts \
             --outfile dist/${{ matrix.artifact }}
 
+      - name: Smoke test binary
+        # darwin-x64 is cross-compiled on a Linux runner (no x64 macOS runner is
+        # available in the matrix), so the produced binary cannot be executed
+        # here — it stays build-only. Every other target runs on its native OS.
+        if: matrix.target != 'bun-darwin-x64'
+        shell: bash
+        env:
+          KVIDAI_NO_UPDATE: "1"
+        run: |
+          BIN="dist/${{ matrix.artifact }}"
+          chmod +x "$BIN" || true
+          # --json dumps the help schema before citty (exercises startup path).
+          "./$BIN" --json > /dev/null
+          # `version --json` exercises citty lazy-import + subcommand dispatch.
+          "./$BIN" version --json > /dev/null
+          echo "smoke test passed: ${{ matrix.platform }}"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
