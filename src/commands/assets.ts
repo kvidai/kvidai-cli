@@ -1,5 +1,6 @@
 import { defineCommand } from "citty";
 import { getApiKey, PLATFORM_BASE } from "../lib/api";
+import { resolveAssetMimeType } from "../lib/mime";
 import { error, output } from "../lib/output";
 import { presignedUpload } from "./upload";
 
@@ -50,6 +51,9 @@ const addCompositionCmd = defineCommand({
   },
   async run({ args }) {
     const asset = JSON.parse(args.assetJson as string);
+    // Fill mimeType when the caller omitted it — the editor needs a valid MIME
+    // to build a decodable blob URL (empty type -> <video> DEMUXER_ERROR).
+    if (!asset.mimeType) asset.mimeType = resolveAssetMimeType(asset);
     const r = await fetch(
       `${PLATFORM_BASE}/video-project/${args.projectId}/composition`,
       {
