@@ -1,6 +1,6 @@
 {
   "name": "@kvidai/cli",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Agent-first CLI for kvidai — generate, manage, and stream AI videos",
   "type": "module",
   "bin": {
