@@ -23,7 +23,8 @@ const generateCmd = defineCommand({
     },
     "cdn-url": {
       type: "string",
-      description: "Pre-uploaded CDN URL to attach as context",
+      description:
+        "Pre-uploaded CDN URL to attach as context (single attachment)",
     },
     mime: {
       type: "string",
@@ -32,6 +33,21 @@ const generateCmd = defineCommand({
     filename: {
       type: "string",
       description: "Filename for --cdn-url attachment",
+    },
+    size: {
+      type: "string",
+      description:
+        "Byte size of --cdn-url attachment (0 makes the agent skip images)",
+    },
+    attachments: {
+      type: "string",
+      description:
+        'JSON array for multiple attachments: [{"cdnUrl","mimeType","filename","size"}]',
+    },
+    "preset-id": {
+      type: "string",
+      description:
+        "Preset ID to apply (voice/tone/palette). system_default if omitted",
     },
     verbose: {
       type: "boolean",
@@ -43,46 +59,72 @@ const generateCmd = defineCommand({
     const message = args.message as string;
     const apiKey = getApiKey();
 
-    const cdnUrl = args["cdn-url"] as string | undefined;
-    let fetchInit: RequestInit;
+    const inferType = (mime?: string) => {
+      if (!mime) return "image";
+      if (mime.startsWith("image/")) return "image";
+      if (mime.startsWith("video/")) return "video";
+      if (mime.startsWith("audio/")) return "audio";
+      if (mime === "application/pdf") return "pdf";
+      return "text";
+    };
+    // Normalize one attachment to the /agent/generate shape.
+    const toAttachment = (a: {
+      cdnUrl: string;
+      mimeType?: string;
+      mime?: string;
+      filename?: string;
+      name?: string;
+      size?: number;
+    }) => {
+      const mimeType = a.mimeType ?? a.mime ?? "application/octet-stream";
+      return {
+        name: a.filename ?? a.name ?? a.cdnUrl.split("/").pop() ?? "attachment",
+        type: inferType(mimeType),
+        mimeType,
+        // size 0 이면 서버 에이전트가 이미지를 빈 파일로 보고 배치에서 제외한다 → 실제 크기 필요.
+        size: Number(a.size ?? 0),
+        cdnUrl: a.cdnUrl,
+      };
+    };
 
-    if (cdnUrl) {
-      const inferType = (mime?: string) => {
-        if (!mime) return "image";
-        if (mime.startsWith("image/")) return "image";
-        if (mime.startsWith("video/")) return "video";
-        if (mime.startsWith("audio/")) return "audio";
-        if (mime === "application/pdf") return "pdf";
-        return "text";
-      };
-      const attachment = {
-        name:
-          (args.filename as string | undefined) ??
-          cdnUrl.split("/").pop() ??
-          "attachment",
-        type: inferType(args.mime as string | undefined),
-        mimeType:
-          (args.mime as string | undefined) ?? "application/octet-stream",
-        size: 0,
-        cdnUrl,
-      };
-      fetchInit = {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "api-key": apiKey },
-        body: JSON.stringify({
-          projectId,
-          message,
-          chatHistory: [],
-          attachedFiles: [attachment],
-        }),
-      };
-    } else {
-      fetchInit = {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "api-key": apiKey },
-        body: JSON.stringify({ projectId, message, chatHistory: [] }),
-      };
+    const attachedFiles: ReturnType<typeof toAttachment>[] = [];
+    if (args.attachments) {
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(args.attachments as string);
+      } catch {
+        error("--attachments must be a JSON array");
+      }
+      if (!Array.isArray(parsed)) error("--attachments must be a JSON array");
+      for (const a of parsed as Record<string, unknown>[]) {
+        if (!a?.cdnUrl) error("each attachment needs a cdnUrl");
+        attachedFiles.push(toAttachment(a as { cdnUrl: string }));
+      }
     }
+    const cdnUrl = args["cdn-url"] as string | undefined;
+    if (cdnUrl) {
+      attachedFiles.push(
+        toAttachment({
+          cdnUrl,
+          mime: args.mime as string | undefined,
+          filename: args.filename as string | undefined,
+          size: args.size ? Number(args.size) : 0,
+        }),
+      );
+    }
+
+    const body: Record<string, unknown> = {
+      projectId,
+      message,
+      chatHistory: [],
+    };
+    if (args["preset-id"]) body.presetId = args["preset-id"];
+    if (attachedFiles.length) body.attachedFiles = attachedFiles;
+    const fetchInit: RequestInit = {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "api-key": apiKey },
+      body: JSON.stringify(body),
+    };
 
     const r = await fetch(`${PLATFORM_BASE}/agent/generate`, {
       ...fetchInit,

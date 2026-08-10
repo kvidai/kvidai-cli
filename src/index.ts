@@ -87,7 +87,7 @@ function startCli(): void {
           usage: "kvidai video <generate|t2v> [args]",
           subcommands: {
             generate:
-              "kvidai video generate <projectId> <message> [--cdn-url <url>] [--mime <type>] [--filename <name>] [--verbose]",
+              "kvidai video generate <projectId> <message> [--preset-id <id>] [--attachments '<json[]>'] [--cdn-url <url> --mime <type> --filename <name> --size <bytes>] [--verbose]",
             t2v: "kvidai video t2v <prompt> [--model <id>] [--duration <s>] [--wait] [--output <path>] [--interval <ms>] [--timeout <ms>]",
           },
         },
