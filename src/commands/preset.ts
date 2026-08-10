@@ -25,64 +25,138 @@ const listCmd = defineCommand({
 
 const getCmd = defineCommand({
   meta: { name: "get", description: "Get a preset by numeric id" },
-  args: { id: { type: "positional", required: true, description: "Numeric preset id" } },
+  args: {
+    id: {
+      type: "positional",
+      required: true,
+      description: "Numeric preset id",
+    },
+  },
   async run({ args }) {
     output(await presetFetch(`/${args.id}`));
   },
 });
 
 const getByPresetIdCmd = defineCommand({
-  meta: { name: "get-by-preset-id", description: "Get a preset by its presetId string" },
-  args: { presetId: { type: "positional", required: true, description: "presetId (e.g. ko-shorts)" } },
+  meta: {
+    name: "get-by-preset-id",
+    description: "Get a preset by its presetId string",
+  },
+  args: {
+    presetId: {
+      type: "positional",
+      required: true,
+      description: "presetId (e.g. ko-shorts)",
+    },
+  },
   async run({ args }) {
-    output(await presetFetch(`/by-preset-id/${encodeURIComponent(args.presetId as string)}`));
+    output(
+      await presetFetch(
+        `/by-preset-id/${encodeURIComponent(args.presetId as string)}`,
+      ),
+    );
   },
 });
 
 const createCmd = defineCommand({
   meta: { name: "create", description: "Create a preset from a JSON file" },
-  args: { file: { type: "positional", required: true, description: "Path to preset JSON" } },
+  args: {
+    file: {
+      type: "positional",
+      required: true,
+      description: "Path to preset JSON",
+    },
+  },
   async run({ args }) {
     const body = JSON.parse(readFileSync(args.file as string, "utf8"));
-    output(await presetFetch("/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }));
+    output(
+      await presetFetch("/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }),
+    );
   },
 });
 
 const updateCmd = defineCommand({
-  meta: { name: "update", description: "Update a preset (numeric id) from inline JSON or a file" },
+  meta: {
+    name: "update",
+    description: "Update a preset (numeric id) from inline JSON or a file",
+  },
   args: {
-    id: { type: "positional", required: true, description: "Numeric preset id" },
-    json: { type: "positional", required: true, description: "Inline JSON string, or path to a .json file" },
+    id: {
+      type: "positional",
+      required: true,
+      description: "Numeric preset id",
+    },
+    json: {
+      type: "positional",
+      required: true,
+      description: "Inline JSON string, or path to a .json file",
+    },
   },
   async run({ args }) {
     const raw = args.json as string;
-    const body = JSON.parse(raw.trim().startsWith("{") ? raw : readFileSync(raw, "utf8"));
-    output(await presetFetch(`/${args.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }));
+    const body = JSON.parse(
+      raw.trim().startsWith("{") ? raw : readFileSync(raw, "utf8"),
+    );
+    output(
+      await presetFetch(`/${args.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }),
+    );
   },
 });
 
 const duplicateCmd = defineCommand({
   meta: { name: "duplicate", description: "Duplicate a preset" },
   args: {
-    id: { type: "positional", required: true, description: "Numeric preset id" },
-    name: { type: "positional", required: false, description: "Name for the copy" },
+    id: {
+      type: "positional",
+      required: true,
+      description: "Numeric preset id",
+    },
+    name: {
+      type: "positional",
+      required: false,
+      description: "Name for the copy",
+    },
   },
   async run({ args }) {
     const body = args.name ? { name: args.name } : {};
-    output(await presetFetch(`/${args.id}/duplicate`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }));
+    output(
+      await presetFetch(`/${args.id}/duplicate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }),
+    );
   },
 });
 
 const deleteCmd = defineCommand({
   meta: { name: "delete", description: "Delete a preset" },
-  args: { id: { type: "positional", required: true, description: "Numeric preset id" } },
+  args: {
+    id: {
+      type: "positional",
+      required: true,
+      description: "Numeric preset id",
+    },
+  },
   async run({ args }) {
     output(await presetFetch(`/${args.id}`, { method: "DELETE" }));
   },
 });
 
 export default defineCommand({
-  meta: { name: "preset", description: "Manage reusable video presets (voice/tone/palette/scene defaults)" },
+  meta: {
+    name: "preset",
+    description:
+      "Manage reusable video presets (voice/tone/palette/scene defaults)",
+  },
   subCommands: {
     list: listCmd,
     get: getCmd,

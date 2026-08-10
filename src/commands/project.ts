@@ -73,7 +73,8 @@ const replaceCompositionCmd = defineCommand({
     file: {
       type: "positional",
       required: true,
-      description: "Path to composition JSON ({ fps, compositionWidth, compositionHeight, durationInFrames, tracks, items, assets })",
+      description:
+        "Path to composition JSON ({ fps, compositionWidth, compositionHeight, durationInFrames, tracks, items, assets })",
     },
   },
   async run({ args }) {

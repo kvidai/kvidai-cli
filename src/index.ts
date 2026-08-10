@@ -56,8 +56,10 @@ function startCli(): void {
           },
         },
         preset: {
-          description: "Manage reusable video presets (voice/tone/palette/scene defaults)",
-          usage: "kvidai preset <list|get|get-by-preset-id|create|update|duplicate|delete> [args]",
+          description:
+            "Manage reusable video presets (voice/tone/palette/scene defaults)",
+          usage:
+            "kvidai preset <list|get|get-by-preset-id|create|update|duplicate|delete> [args]",
           subcommands: {
             list: "kvidai preset list",
             get: "kvidai preset get <id>",
@@ -76,7 +78,8 @@ function startCli(): void {
               "kvidai voice generate <text> [--voice-id <id>] [--lang ko] [--speed 1.05] [--output a.mp3] — outputs {result_url, duration_seconds}",
           },
           env: {
-            KVIDAI_USER_EMAIL: "Credit-pool identifier for TTS (or KVIDAI_PRODUCT_CODE/ID)",
+            KVIDAI_USER_EMAIL:
+              "Credit-pool identifier for TTS (or KVIDAI_PRODUCT_CODE/ID)",
           },
         },
         video: {

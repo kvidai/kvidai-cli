@@ -19,28 +19,50 @@ async function aiFetch(path: string, init?: RequestInit) {
 
 // Generation endpoints need a credit-pool identifier in the body.
 function creditId(): Record<string, string> {
-  if (process.env.KVIDAI_PRODUCT_CODE) return { product_code: process.env.KVIDAI_PRODUCT_CODE };
-  if (process.env.KVIDAI_PRODUCT_ID) return { product_id: process.env.KVIDAI_PRODUCT_ID };
+  if (process.env.KVIDAI_PRODUCT_CODE)
+    return { product_code: process.env.KVIDAI_PRODUCT_CODE };
+  if (process.env.KVIDAI_PRODUCT_ID)
+    return { product_id: process.env.KVIDAI_PRODUCT_ID };
   const email = process.env.KVIDAI_USER_EMAIL ?? loadConfig().userEmail;
   if (email) return { email };
-  error("Credit identifier required: set KVIDAI_USER_EMAIL (or KVIDAI_PRODUCT_CODE/ID)");
+  error(
+    "Credit identifier required: set KVIDAI_USER_EMAIL (or KVIDAI_PRODUCT_CODE/ID)",
+  );
   return {};
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const generateCmd = defineCommand({
-  meta: { name: "generate", description: "Text-to-speech: generate an mp3 from text" },
+  meta: {
+    name: "generate",
+    description: "Text-to-speech: generate an mp3 from text",
+  },
   args: {
     text: { type: "positional", required: true, description: "Text to speak" },
-    "voice-id": { type: "string", description: "ElevenLabs voice id (default: pNInz6obpgDQGcFmaJgB)" },
-    "model-id": { type: "string", description: "TTS model id (default: eleven_multilingual_v2)" },
+    "voice-id": {
+      type: "string",
+      description: "ElevenLabs voice id (default: pNInz6obpgDQGcFmaJgB)",
+    },
+    "model-id": {
+      type: "string",
+      description: "TTS model id (default: eleven_multilingual_v2)",
+    },
     lang: { type: "string", description: "Language code (e.g. ko)" },
     speed: { type: "string", description: "Speaking speed (e.g. 1.05)" },
-    format: { type: "string", description: "Output format (default: mp3_44100_128)" },
+    format: {
+      type: "string",
+      description: "Output format (default: mp3_44100_128)",
+    },
     output: { type: "string", description: "Download the mp3 to this path" },
-    interval: { type: "string", description: "Poll interval ms (default 3000)" },
-    timeout: { type: "string", description: "Poll timeout ms (default 300000)" },
+    interval: {
+      type: "string",
+      description: "Poll interval ms (default 3000)",
+    },
+    timeout: {
+      type: "string",
+      description: "Poll timeout ms (default 300000)",
+    },
   },
   async run({ args }) {
     const body: Record<string, unknown> = {
@@ -52,11 +74,14 @@ const generateCmd = defineCommand({
       ...(args.lang ? { language_code: String(args.lang) } : {}),
       ...(args.speed ? { voice_settings: { speed: Number(args.speed) } } : {}),
     };
-    const submit = await aiFetch("/ai/generation/voice/text-to-speech/generate-async", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+    const submit = await aiFetch(
+      "/ai/generation/voice/text-to-speech/generate-async",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      },
+    );
     const jobId = submit?.data?.job_id ?? submit?.job_id;
     if (!jobId) error(`No job_id in response: ${JSON.stringify(submit)}`);
 
@@ -65,20 +90,28 @@ const generateCmd = defineCommand({
     const start = Date.now();
     // poll until completed
     while (true) {
-      const st = await aiFetch(`/ai/generation/voice/status?jobId=${encodeURIComponent(jobId)}`);
+      const st = await aiFetch(
+        `/ai/generation/voice/status?jobId=${encodeURIComponent(jobId)}`,
+      );
       const status = String(st?.data?.status ?? st?.status ?? "");
       if (/completed/i.test(status)) break;
-      if (/failed|error/i.test(status)) error(`voice failed: ${JSON.stringify(st)}`);
+      if (/failed|error/i.test(status))
+        error(`voice failed: ${JSON.stringify(st)}`);
       if (Date.now() - start > timeout) error("voice timeout");
       await sleep(interval);
     }
 
-    const result = await aiFetch(`/ai/generation/voice/result?jobId=${encodeURIComponent(jobId)}`);
+    const result = await aiFetch(
+      `/ai/generation/voice/result?jobId=${encodeURIComponent(jobId)}`,
+    );
     const d = result?.data ?? result;
     if (args.output && d?.result_url) {
       const res = await fetch(d.result_url as string);
       if (!res.ok) error(`download ${res.status}: ${d.result_url}`);
-      writeFileSync(args.output as string, Buffer.from(await res.arrayBuffer()));
+      writeFileSync(
+        args.output as string,
+        Buffer.from(await res.arrayBuffer()),
+      );
     }
     output({
       result_url: d?.result_url,
