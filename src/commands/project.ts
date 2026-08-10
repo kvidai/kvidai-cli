@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { defineCommand } from "citty";
 import { getApiKey, PLATFORM_BASE } from "../lib/api";
 import { error, output } from "../lib/output";
@@ -58,10 +59,42 @@ const getCmd = defineCommand({
   },
 });
 
+const replaceCompositionCmd = defineCommand({
+  meta: {
+    name: "replace-composition",
+    description: "Replace a project's entire composition from a JSON file",
+  },
+  args: {
+    projectId: {
+      type: "positional",
+      required: true,
+      description: "Project ID",
+    },
+    file: {
+      type: "positional",
+      required: true,
+      description: "Path to composition JSON ({ fps, compositionWidth, compositionHeight, durationInFrames, tracks, items, assets })",
+    },
+  },
+  async run({ args }) {
+    const composition = JSON.parse(readFileSync(args.file as string, "utf8"));
+    const data = await apiFetch(
+      `/video-project/${args.projectId}/composition`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ operation: "replace", data: { composition } }),
+      },
+    );
+    output(data);
+  },
+});
+
 export default defineCommand({
   meta: { name: "project", description: "Create and inspect video projects" },
   subCommands: {
     create: createCmd,
     get: getCmd,
+    "replace-composition": replaceCompositionCmd,
   },
 });

@@ -87,6 +87,36 @@ Get project details.
 kvidai project get 42 --json
 ```
 
+### `kvidai project replace-composition <projectId> <compositionJsonFile>`
+
+Replace a project's entire composition from a JSON file (`{ fps, compositionWidth, compositionHeight, durationInFrames, tracks, items, assets }`). Used when assembling a composition programmatically rather than via the agent.
+
+```bash
+kvidai project replace-composition 42 ./composition.json --json
+```
+
+### `kvidai preset <list|get|get-by-preset-id|create|update|duplicate|delete>`
+
+Manage reusable video presets (voice, tone, color palette, scene defaults) that seed new projects.
+
+```bash
+kvidai preset list --json
+kvidai preset get 50 --json
+kvidai preset get-by-preset-id ko-shorts --json
+kvidai preset create ./preset.json --json
+kvidai preset update 50 './preset.json' --json      # inline JSON or a file path
+kvidai preset duplicate 50 "copy name" --json
+kvidai preset delete 50 --json
+```
+
+### `kvidai voice generate <text> [options]`
+
+Text-to-speech. Polls the async job and returns `{ result_url, duration_seconds, alignment }`; `--output` downloads the mp3. Requires `KVIDAI_USER_EMAIL` (or `KVIDAI_PRODUCT_CODE`/`KVIDAI_PRODUCT_ID`) for credit identification.
+
+```bash
+kvidai voice generate "안녕하세요" --voice-id m3gJBS8OofDJfycyA2Ip --lang ko --speed 1.05 --output ./voice.mp3 --json
+```
+
 ### `kvidai video generate <projectId> <message> [options]`
 
 Stream agent generation for a project via SSE. The agent processes the message and executes tools; the command exits when the stream ends.

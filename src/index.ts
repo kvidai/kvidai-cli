@@ -46,11 +46,37 @@ function startCli(): void {
       commands: {
         project: {
           description: "Create and inspect video projects",
-          usage: "kvidai project <create|get> [args]",
+          usage: "kvidai project <create|get|replace-composition> [args]",
           subcommands: {
             create:
               "kvidai project create <name> [--preset-id <id>] — creates a new project, outputs {id}",
             get: "kvidai project get <id> — get project details",
+            "replace-composition":
+              "kvidai project replace-composition <projectId> <compositionJsonFile> — replace the whole composition",
+          },
+        },
+        preset: {
+          description: "Manage reusable video presets (voice/tone/palette/scene defaults)",
+          usage: "kvidai preset <list|get|get-by-preset-id|create|update|duplicate|delete> [args]",
+          subcommands: {
+            list: "kvidai preset list",
+            get: "kvidai preset get <id>",
+            "get-by-preset-id": "kvidai preset get-by-preset-id <presetId>",
+            create: "kvidai preset create <file.json>",
+            update: "kvidai preset update <id> <inlineJson|file.json>",
+            duplicate: "kvidai preset duplicate <id> [name]",
+            delete: "kvidai preset delete <id>",
+          },
+        },
+        voice: {
+          description: "Text-to-speech (TTS) generation",
+          usage: "kvidai voice generate <text> [args]",
+          subcommands: {
+            generate:
+              "kvidai voice generate <text> [--voice-id <id>] [--lang ko] [--speed 1.05] [--output a.mp3] — outputs {result_url, duration_seconds}",
+          },
+          env: {
+            KVIDAI_USER_EMAIL: "Credit-pool identifier for TTS (or KVIDAI_PRODUCT_CODE/ID)",
           },
         },
         video: {
@@ -187,6 +213,8 @@ function startCli(): void {
       init: () => import("./commands/init").then((m) => m.default),
       skills: () => import("./commands/skills/index").then((m) => m.default),
       project: () => import("./commands/project").then((m) => m.default),
+      preset: () => import("./commands/preset").then((m) => m.default),
+      voice: () => import("./commands/voice").then((m) => m.default),
       video: () => import("./commands/video").then((m) => m.default),
       image: () => import("./commands/image").then((m) => m.default),
       task: () => import("./commands/task").then((m) => m.default),
