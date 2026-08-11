@@ -1,4 +1,13 @@
-# TODO: 에이전트 다수 이미지 배치 — composition.assets 미사용 + generate 행
+# DONE(백엔드): 에이전트 다수 이미지 배치 — 토큰-free 자산 라이브러리
+
+> ✅ **2026-08-11 해결**: web-service `/api/agent/route.ts` 가 프로젝트 composition.assets 를
+> 로드·병합하고 **compact 매니페스트(id+파일명)를 프롬프트에 주입** → 에이전트 `use_uploaded_asset`
+> 이 이제 resolve. **실측 project 564: add_asset 12개 + attachedFiles 0 → Media 트랙 12/12 배치**
+> (토큰 초과 없음). 남은 것: kvidai-cli `--timeout`, marketing-studio `send-video-kvidai` 배선.
+
+---
+
+# (원본 기록) 에이전트 다수 이미지 배치 — composition.assets 미사용 + generate 행
 
 > **Status**: todo
 > **Created In**: /Users/workspace/kvidai-workspace/kvidai-cli
