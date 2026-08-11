@@ -9,25 +9,29 @@
 는 ~10개 캡이라 부족. 이상적 해법 = **업로드 후 `composition.assets` 로 다수 시딩 + message 에
 매니페스트(파일명+설명+용도) → 에이전트가 참조 배치.** (파일 바이트 없이 URL+설명만 전달)
 
-## 실측 결과 (project 556, kvid 0.9.0)
-- ✅ `composition.assets` 는 캡 없이 12개 시딩·유지됨 (`kvid assets add-composition`).
-- ❌ **attachedFiles 없이** 매니페스트만으로 `kvid video generate` → 에이전트가 그 에셋을
-  **배치 안 함**, SSE 가 안 닫혀 **15분 하드 타임아웃까지 행** → 빈 타임라인(items 0).
+## 실측 결과 (project 556/561, kvid 0.9.0) — 3회 검증
+
+| 경로 | 결과 |
+|------|------|
+| `attachedFiles` ≤10 → `use_uploaded_asset` | ✅ **정상 배치** (유일하게 작동하는 경로) |
+| `attachedFiles` **12개**(>10) | ❌ 서버 **400 거부**: `too_big, maximum:10, path:["attachedFiles"]` (Zod 하드 검증) |
+| `composition.assets`(add_asset) 12개 + 매니페스트, 첨부 없음 | ❌ 에이전트가 **실제 배치 안 함** — 1차 SSE 15분 행 / 2차 `use_uploaded_asset` 12회 호출했으나 최종본에 시딩 이미지 **0/12**(solid 로 대체). 스킬 문서의 "agent sees it on timeline" 은 **부정확**. |
 
 ## 고쳐야 할 것
 
-### 1. API / 에이전트 (근본 — 백엔드)
-- `/agent/generate` 가 **프로젝트 composition.assets 를 컨텍스트로 인지**하고, message 매니페스트
-  (asset id/파일명 + 설명)를 근거로 **씬에 배치**하도록.
-- 최소한 attachedFiles 없이 호출돼도 **SSE 가 정상 종료**해야 함(무한 대기 금지).
-- 이게 되면 marketing-studio 의 "순수 A"(에이전트 무제한 배치)가 열림 → 지금은 direct 결정적
-  배치로 우회 중(`send-video-kvidai` `assembleProject`).
+### 1. ⭐ API — `attachedFiles` 캡 상향 (근본·최소 변경, 권장)
+- `/agent/generate` 입력 검증의 **`attachedFiles` 배열 `max(10)` 을 상향**(예: 50) 또는 해제.
+- 배치 로직(`use_uploaded_asset`)은 **이미 정상 동작** → **숫자 제한만 풀면** URL+설명(매니페스트) 다수 이미지가 즉시 됨.
+- 이게 marketing-studio 의 "agent 모드 다수 이미지"(= 유저 #3 시나리오)를 여는 **단일 스위치**.
 
-### 2. kvidai-cli (`src/commands/video.ts`)
-- `video generate` 에 **`--timeout` 플래그** 추가 (현재 `AbortSignal.timeout(15*60*1000)` 하드코딩, video.ts:131).
-- SSE 가 진전 없이 멈추면 **빠른 실패/경고** (15분 무증상 행 방지). `--verbose` 진행표시 강화.
+### 2. (대안) 에이전트가 `composition.assets` 소비하도록 — 더 큰 작업
+- add_asset 로 넣은 자산을 `use_uploaded_asset`/배치가 실제로 사용하도록. 무제한이지만 #1보다 복잡.
+- 겸사겸사 attachedFiles 없이 호출돼도 **SSE 정상 종료**(무한 대기 금지).
+
+### 3. kvidai-cli (`src/commands/video.ts`)
+- `video generate` 에 **`--timeout` 플래그** (현재 `AbortSignal.timeout(15*60*1000)` 하드코딩, video.ts:131).
+- SSE 무진전 시 빠른 실패/경고.
 
 ## 참고
-- 우회책(현행): 다수 이미지 = **direct 결정적 배치**(Claude vision 씬매핑 + `replace-composition`, 무제한).
-  marketing-studio `.claude/skills/new-video/SKILL.md` step 0 자동 라우팅 참조.
-- 관련 계약: marketing-studio `.claude/rules/upstream-cli-contract.md`.
+- **direct 우회는 폐기** (유저가 agent 모드 유지 요구). 다수 이미지는 #1 로 해결.
+- marketing-studio: `.claude/skills/new-video/SKILL.md`(agent-mode-many), `.claude/rules/upstream-cli-contract.md`.
