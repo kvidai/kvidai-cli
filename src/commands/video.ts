@@ -1,10 +1,6 @@
 import { defineCommand } from "citty";
 import { getApiKey, PLATFORM_BASE } from "../lib/api";
-import {
-  asyncGenArgs,
-  runAsyncGeneration,
-  userEmail,
-} from "../lib/generation";
+import { asyncGenArgs, runAsyncGeneration, userEmail } from "../lib/generation";
 import { error, isJsonOutput, output } from "../lib/output";
 
 const generateCmd = defineCommand({
@@ -243,8 +239,7 @@ const i2vCmd = defineCommand({
       userEmail: userEmail(),
     };
     if (args.model) body.model = args.model;
-    if (args["negative-prompt"])
-      body.negative_prompt = args["negative-prompt"];
+    if (args["negative-prompt"]) body.negative_prompt = args["negative-prompt"];
     await runAsyncGeneration(
       "i2v",
       "/ai/generation/image-to-video/generate-async",
@@ -274,7 +269,10 @@ const ref2vidCmd = defineCommand({
       type: "string",
       description: "JSON array of reference image URLs (overrides --image)",
     },
-    video: { type: "string", description: "Reference video CDN URL (optional)" },
+    video: {
+      type: "string",
+      description: "Reference video CDN URL (optional)",
+    },
     model: {
       type: "string",
       description: "Model ID (server default if omitted)",
@@ -308,7 +306,8 @@ const ref2vidCmd = defineCommand({
 const talkV2vCmd = defineCommand({
   meta: {
     name: "talk-v2v",
-    description: "Lipsync video-to-video (input video + prompt → talking video)",
+    description:
+      "Lipsync video-to-video (input video + prompt → talking video)",
   },
   args: {
     prompt: {
@@ -336,8 +335,7 @@ const talkV2vCmd = defineCommand({
       userEmail: userEmail(),
     };
     if (args.model) body.model = args.model;
-    if (args["negative-prompt"])
-      body.negative_prompt = args["negative-prompt"];
+    if (args["negative-prompt"]) body.negative_prompt = args["negative-prompt"];
     await runAsyncGeneration(
       "talk-v2v",
       "/ai/generation/talk-v2v/generate-async",

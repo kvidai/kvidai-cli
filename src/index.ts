@@ -41,7 +41,7 @@ function startCli(): void {
         KVIDAI_BASE_URL:
           "Override the API base URL (default: https://api.kvid.ai)",
         KVIDAI_USER_EMAIL:
-          "User email required for t2v generation and asset upload",
+          "User email required for async generation (t2v/i2v/ref2vid/i2i/talk-v2v) and asset upload",
       },
       commands: {
         project: {
@@ -113,7 +113,8 @@ function startCli(): void {
           },
         },
         image: {
-          description: "Generate/edit images (t2i text-to-image, i2i image-to-image)",
+          description:
+            "Generate/edit images (t2i text-to-image, i2i image-to-image)",
           usage: "kvidai image <generate|i2i> [args]",
           subcommands: {
             generate:

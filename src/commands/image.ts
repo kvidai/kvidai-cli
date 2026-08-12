@@ -1,11 +1,7 @@
 import { writeFileSync } from "node:fs";
 import { defineCommand } from "citty";
 import { getApiKey, PLATFORM_BASE } from "../lib/api";
-import {
-  asyncGenArgs,
-  runAsyncGeneration,
-  userEmail,
-} from "../lib/generation";
+import { asyncGenArgs, runAsyncGeneration, userEmail } from "../lib/generation";
 import { error, output } from "../lib/output";
 
 const generateCmd = defineCommand({

@@ -52,7 +52,11 @@ export async function runAsyncGeneration(
   if (!r.ok) error(`${label} ${r.status}: ${await r.text()}`);
   const data = await r.json();
   const jobId = String(
-    data?.data?.job_id ?? data?.data?.jobId ?? data?.job_id ?? data?.jobId ?? "",
+    data?.data?.job_id ??
+      data?.data?.jobId ??
+      data?.job_id ??
+      data?.jobId ??
+      "",
   );
 
   if (!args.wait && !args.output) {
