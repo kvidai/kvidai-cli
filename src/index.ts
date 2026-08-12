@@ -83,12 +83,18 @@ function startCli(): void {
           },
         },
         video: {
-          description: "Generate video via agent (SSE) or text-to-video",
-          usage: "kvidai video <generate|t2v> [args]",
+          description:
+            "Generate video: agent (SSE), t2v, i2v, ref2vid, talk-v2v",
+          usage: "kvidai video <generate|t2v|i2v|ref2vid|talk-v2v> [args]",
           subcommands: {
             generate:
               "kvidai video generate <projectId> <message> [--preset-id <id>] [--attachments '<json[]>'] [--cdn-url <url> --mime <type> --filename <name> --size <bytes>] [--verbose]",
             t2v: "kvidai video t2v <prompt> [--model <id>] [--duration <s>] [--wait] [--output <path>] [--interval <ms>] [--timeout <ms>]",
+            i2v: "kvidai video i2v <prompt> --image <cdnUrl> [--model <id>] [--negative-prompt <s>] [--wait] [--output <path>]",
+            ref2vid:
+              "kvidai video ref2vid <prompt> --image <cdnUrl> | --images '<json[]>' [--video <cdnUrl>] [--model <id>] [--wait] [--output <path>]",
+            "talk-v2v":
+              "kvidai video talk-v2v <prompt> --video <cdnUrl> [--model <id>] [--negative-prompt <s>] [--wait] [--output <path>]",
           },
         },
         task: {
@@ -107,12 +113,12 @@ function startCli(): void {
           },
         },
         image: {
-          description: "Generate images from text prompts",
-          usage:
-            "kvidai image generate <prompt> [--model <id>] [--size <preset>] [--num <n>] [--output <path>]",
+          description: "Generate/edit images (t2i text-to-image, i2i image-to-image)",
+          usage: "kvidai image <generate|i2i> [args]",
           subcommands: {
             generate:
-              "kvidai image generate <prompt> [--size square|portrait_4_3|landscape_16_9|...] [--output <path>]",
+              "kvidai image generate <prompt> [--size square|portrait_4_3|landscape_16_9|...] [--num <n>] [--output <path>]",
+            i2i: "kvidai image i2i <prompt> --image <cdnUrl> | --images '<json[]>' [--model <id>] [--num <n>] [--wait] [--output <path>]",
           },
         },
         assets: {

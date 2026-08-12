@@ -1,9 +1,11 @@
-import { writeFileSync } from "node:fs";
 import { defineCommand } from "citty";
 import { getApiKey, PLATFORM_BASE } from "../lib/api";
-import { loadConfig } from "../lib/config";
+import {
+  asyncGenArgs,
+  runAsyncGeneration,
+  userEmail,
+} from "../lib/generation";
 import { error, isJsonOutput, output } from "../lib/output";
-import { pollStatus } from "./task";
 
 const generateCmd = defineCommand({
   meta: {
@@ -191,88 +193,170 @@ const t2vCmd = defineCommand({
       type: "string",
       description: "Duration in seconds",
     },
-    wait: {
-      type: "boolean",
-      description: "Poll until completed before exiting",
-    },
-    output: {
-      type: "string",
-      description: "Download result video to this path (implies --wait)",
-    },
-    interval: {
-      type: "string",
-      description: "Poll interval in ms (default: 5000)",
-    },
-    timeout: {
-      type: "string",
-      description: "Max wait time in ms (default: 600000)",
-    },
+    ...asyncGenArgs,
   },
   async run({ args }) {
     const body: Record<string, unknown> = {
       prompt: args.prompt,
-      userEmail: process.env.KVIDAI_USER_EMAIL ?? loadConfig().userEmail,
+      function: "txt2vid",
+      userEmail: userEmail(),
     };
     if (args.model) body.model = args.model;
     if (args.duration) body.duration = Number(args.duration);
-
-    const r = await fetch(
-      `${PLATFORM_BASE}/ai/generation/text-to-video/generate-async`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "api-key": getApiKey() },
-        body: JSON.stringify(body),
-      },
+    await runAsyncGeneration(
+      "t2v",
+      "/ai/generation/text-to-video/generate-async",
+      body,
+      args,
     );
-    if (!r.ok) error(`t2v ${r.status}: ${await r.text()}`);
-    const data = await r.json();
-    const jobId = String(
-      data?.data?.job_id ??
-        data?.data?.jobId ??
-        data?.job_id ??
-        data?.jobId ??
-        "",
+  },
+});
+
+const i2vCmd = defineCommand({
+  meta: {
+    name: "i2v",
+    description: "Image-to-video async generation (source image → video)",
+  },
+  args: {
+    prompt: {
+      type: "positional",
+      required: true,
+      description: "Motion/scene prompt describing how to animate the image",
+    },
+    image: {
+      type: "string",
+      required: true,
+      description: "Source image CDN URL (from `kvidai upload`)",
+    },
+    model: {
+      type: "string",
+      description: "Model ID (server default if omitted)",
+    },
+    "negative-prompt": { type: "string", description: "Negative prompt" },
+    ...asyncGenArgs,
+  },
+  async run({ args }) {
+    const body: Record<string, unknown> = {
+      prompt: args.prompt,
+      function: "img2vid",
+      image_url: args.image,
+      userEmail: userEmail(),
+    };
+    if (args.model) body.model = args.model;
+    if (args["negative-prompt"])
+      body.negative_prompt = args["negative-prompt"];
+    await runAsyncGeneration(
+      "i2v",
+      "/ai/generation/image-to-video/generate-async",
+      body,
+      args,
     );
+  },
+});
 
-    if (!args.wait && !args.output) {
-      output({ jobId, ...data });
-      return;
-    }
+const ref2vidCmd = defineCommand({
+  meta: {
+    name: "ref2vid",
+    description:
+      "Reference-to-video async generation (reference image(s) → video)",
+  },
+  args: {
+    prompt: {
+      type: "positional",
+      required: true,
+      description: "Video prompt (describe motion/scene using the reference)",
+    },
+    image: {
+      type: "string",
+      description: "Reference image CDN URL (single; or use --images)",
+    },
+    images: {
+      type: "string",
+      description: "JSON array of reference image URLs (overrides --image)",
+    },
+    video: { type: "string", description: "Reference video CDN URL (optional)" },
+    model: {
+      type: "string",
+      description: "Model ID (server default if omitted)",
+    },
+    ...asyncGenArgs,
+  },
+  async run({ args }) {
+    const imageUrls = args.images
+      ? JSON.parse(args.images as string)
+      : args.image
+        ? [args.image]
+        : [];
+    if (!imageUrls.length) error("ref2vid requires --image or --images");
+    const body: Record<string, unknown> = {
+      prompt: args.prompt,
+      function: "ref2vid",
+      image_urls: imageUrls,
+      video_urls: args.video ? [args.video] : [],
+      userEmail: userEmail(),
+    };
+    if (args.model) body.model = args.model;
+    await runAsyncGeneration(
+      "ref2vid",
+      "/ai/generation/reference-to-video/generate-async",
+      body,
+      args,
+    );
+  },
+});
 
-    const intervalMs = args.interval ? Number(args.interval) : 5_000;
-    const timeoutMs = args.timeout ? Number(args.timeout) : 600_000;
-    const result = await pollStatus(jobId, {
-      intervalMs,
-      timeoutMs,
-      onTick: (s) => {
-        if (process.stderr.isTTY) process.stderr.write(`\r  status: ${s}   `);
-      },
-    });
-    if (process.stderr.isTTY) process.stderr.write("\n");
-
-    if (args.output) {
-      const res = result as Record<string, unknown>;
-      const d = res?.data as Record<string, unknown>;
-      const url =
-        d?.result_url ?? d?.videoUrl ?? res?.result_url ?? res?.videoUrl;
-      if (typeof url === "string") {
-        const fetched = await fetch(url);
-        const buf = Buffer.from(await fetched.arrayBuffer());
-        writeFileSync(args.output as string, buf);
-        process.stderr.write(`Downloaded → ${args.output}\n`);
-      }
-    }
-    output(result);
+const talkV2vCmd = defineCommand({
+  meta: {
+    name: "talk-v2v",
+    description: "Lipsync video-to-video (input video + prompt → talking video)",
+  },
+  args: {
+    prompt: {
+      type: "positional",
+      required: true,
+      description: "Speech/lyrics/instruction prompt",
+    },
+    video: {
+      type: "string",
+      required: true,
+      description: "Input video CDN URL (from `kvidai upload`)",
+    },
+    model: {
+      type: "string",
+      description: "Model ID (server default if omitted)",
+    },
+    "negative-prompt": { type: "string", description: "Negative prompt" },
+    ...asyncGenArgs,
+  },
+  async run({ args }) {
+    const body: Record<string, unknown> = {
+      prompt: args.prompt,
+      function: "talk_v2v",
+      input_video: args.video,
+      userEmail: userEmail(),
+    };
+    if (args.model) body.model = args.model;
+    if (args["negative-prompt"])
+      body.negative_prompt = args["negative-prompt"];
+    await runAsyncGeneration(
+      "talk-v2v",
+      "/ai/generation/talk-v2v/generate-async",
+      body,
+      args,
+    );
   },
 });
 
 export default defineCommand({
   meta: {
     name: "video",
-    description: "Generate video via agent or text-to-video",
+    description: "Generate video: agent, t2v, i2v, ref2vid, talk-v2v",
   },
   subCommands: {
     generate: generateCmd,
     t2v: t2vCmd,
+    i2v: i2vCmd,
+    ref2vid: ref2vidCmd,
+    "talk-v2v": talkV2vCmd,
   },
 });

@@ -65,7 +65,7 @@ Every flag is optional — fields you don't pass keep their current values, so r
 |---|---|
 | `KVIDAI_API_KEY` | API key (required for all commands) |
 | `KVIDAI_BASE_URL` | Override API base URL (default: `https://api.kvid.ai`) |
-| `KVIDAI_USER_EMAIL` | User email (required for `video t2v` and `assets upload`) |
+| `KVIDAI_USER_EMAIL` | User email (required for async generation (t2v/i2v/ref2vid/i2i/talk-v2v) and `assets upload`) |
 | `KVIDAI_NO_UPDATE` | Set to `1` to disable automatic update checks |
 
 ## Commands
@@ -150,6 +150,42 @@ Options:
 - `--output <path>` — download result video (implies `--wait`)
 - `--interval <ms>` — polling interval (default: 5000)
 - `--timeout <ms>` — max wait time (default: 600000)
+
+### `kvidai video i2v <prompt> --image <cdnUrl> [options]`
+
+Image-to-video: animate a source image into a clip. Upload the image first (`kvidai upload`), pass its `cdnUrl`.
+
+```bash
+kvidai video i2v "slow cinematic zoom-in, gentle wind" --image <cdnUrl> --wait --output ./out.mp4 --json
+```
+Options: `--image <cdnUrl>` (required), `--model <id>`, `--negative-prompt <s>`, plus the shared `--wait/--output/--interval/--timeout`.
+
+### `kvidai video ref2vid <prompt> --image <cdnUrl> [options]`
+
+Reference-to-video: generate a video steered by reference image(s) (and optional reference video).
+
+```bash
+kvidai video ref2vid "the character walks through a neon city at night" --image <cdnUrl> --wait --output ./out.mp4 --json
+```
+Options: `--image <cdnUrl>` or `--images '<json[]>'`, `--video <cdnUrl>`, `--model <id>`, shared async flags.
+
+### `kvidai video talk-v2v <prompt> --video <cdnUrl> [options]`
+
+Lipsync video-to-video: drive a talking/singing head from an input video + prompt.
+
+```bash
+kvidai video talk-v2v "a woman singing a lullaby" --video <cdnUrl> --wait --output ./out.mp4 --json
+```
+Options: `--video <cdnUrl>` (required), `--model <id>`, `--negative-prompt <s>`, shared async flags.
+
+### `kvidai image i2i <prompt> --image <cdnUrl> [options]`
+
+Image-to-image: edit/transform a source image (e.g. "make the sky a dramatic sunset, keep the subject").
+
+```bash
+kvidai image i2i "make the sky a dramatic sunset, keep the subject unchanged" --image <cdnUrl> --wait --output ./out.png --json
+```
+Options: `--image <cdnUrl>` or `--images '<json[]>'`, `--model <id>`, `--num <n>`, shared async flags.
 
 ### `kvidai task status <jobId> [options]`
 
