@@ -41,25 +41,60 @@ function startCli(): void {
         KVIDAI_BASE_URL:
           "Override the API base URL (default: https://api.kvid.ai)",
         KVIDAI_USER_EMAIL:
-          "User email required for t2v generation and asset upload",
+          "User email required for async generation (t2v/i2v/ref2vid/i2i/talk-v2v) and asset upload",
       },
       commands: {
         project: {
           description: "Create and inspect video projects",
-          usage: "kvidai project <create|get> [args]",
+          usage: "kvidai project <create|get|replace-composition> [args]",
           subcommands: {
             create:
               "kvidai project create <name> [--preset-id <id>] — creates a new project, outputs {id}",
             get: "kvidai project get <id> — get project details",
+            "replace-composition":
+              "kvidai project replace-composition <projectId> <compositionJsonFile> — replace the whole composition",
+          },
+        },
+        preset: {
+          description:
+            "Manage reusable video presets (voice/tone/palette/scene defaults)",
+          usage:
+            "kvidai preset <list|get|get-by-preset-id|create|update|duplicate|delete> [args]",
+          subcommands: {
+            list: "kvidai preset list",
+            get: "kvidai preset get <id>",
+            "get-by-preset-id": "kvidai preset get-by-preset-id <presetId>",
+            create: "kvidai preset create <file.json>",
+            update: "kvidai preset update <id> <inlineJson|file.json>",
+            duplicate: "kvidai preset duplicate <id> [name]",
+            delete: "kvidai preset delete <id>",
+          },
+        },
+        voice: {
+          description: "Text-to-speech (TTS) generation",
+          usage: "kvidai voice generate <text> [args]",
+          subcommands: {
+            generate:
+              "kvidai voice generate <text> [--voice-id <id>] [--lang ko] [--speed 1.05] [--output a.mp3] — outputs {result_url, duration_seconds}",
+          },
+          env: {
+            KVIDAI_USER_EMAIL:
+              "Credit-pool identifier for TTS (or KVIDAI_PRODUCT_CODE/ID)",
           },
         },
         video: {
-          description: "Generate video via agent (SSE) or text-to-video",
-          usage: "kvidai video <generate|t2v> [args]",
+          description:
+            "Generate video: agent (SSE), t2v, i2v, ref2vid, talk-v2v",
+          usage: "kvidai video <generate|t2v|i2v|ref2vid|talk-v2v> [args]",
           subcommands: {
             generate:
-              "kvidai video generate <projectId> <message> [--cdn-url <url>] [--mime <type>] [--filename <name>] [--verbose]",
+              "kvidai video generate <projectId> <message> [--preset-id <id>] [--attachments '<json[]>'] [--cdn-url <url> --mime <type> --filename <name> --size <bytes>] [--verbose]",
             t2v: "kvidai video t2v <prompt> [--model <id>] [--duration <s>] [--wait] [--output <path>] [--interval <ms>] [--timeout <ms>]",
+            i2v: "kvidai video i2v <prompt> --image <cdnUrl> [--model <id>] [--negative-prompt <s>] [--wait] [--output <path>]",
+            ref2vid:
+              "kvidai video ref2vid <prompt> --image <cdnUrl> | --images '<json[]>' [--video <cdnUrl>] [--model <id>] [--wait] [--output <path>]",
+            "talk-v2v":
+              "kvidai video talk-v2v <prompt> --video <cdnUrl> [--model <id>] [--negative-prompt <s>] [--wait] [--output <path>]",
           },
         },
         task: {
@@ -78,12 +113,13 @@ function startCli(): void {
           },
         },
         image: {
-          description: "Generate images from text prompts",
-          usage:
-            "kvidai image generate <prompt> [--model <id>] [--size <preset>] [--num <n>] [--output <path>]",
+          description:
+            "Generate/edit images (t2i text-to-image, i2i image-to-image)",
+          usage: "kvidai image <generate|i2i> [args]",
           subcommands: {
             generate:
-              "kvidai image generate <prompt> [--size square|portrait_4_3|landscape_16_9|...] [--output <path>]",
+              "kvidai image generate <prompt> [--size square|portrait_4_3|landscape_16_9|...] [--num <n>] [--output <path>]",
+            i2i: "kvidai image i2i <prompt> --image <cdnUrl> | --images '<json[]>' [--model <id>] [--num <n>] [--wait] [--output <path>]",
           },
         },
         assets: {
@@ -187,6 +223,8 @@ function startCli(): void {
       init: () => import("./commands/init").then((m) => m.default),
       skills: () => import("./commands/skills/index").then((m) => m.default),
       project: () => import("./commands/project").then((m) => m.default),
+      preset: () => import("./commands/preset").then((m) => m.default),
+      voice: () => import("./commands/voice").then((m) => m.default),
       video: () => import("./commands/video").then((m) => m.default),
       image: () => import("./commands/image").then((m) => m.default),
       task: () => import("./commands/task").then((m) => m.default),
