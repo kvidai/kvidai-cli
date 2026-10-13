@@ -1,6 +1,6 @@
 #!/bin/sh
 # Tests for install.sh core logic
-# Run: bash tests/plan-test/install-scripts/test-install-sh.sh
+# Run: bash tests/plan-test/20260927_passed_install-scripts/test-install-sh.sh
 
 set -eu
 
