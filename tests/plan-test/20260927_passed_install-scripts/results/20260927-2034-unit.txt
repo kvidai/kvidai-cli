@@ -1,0 +1,27 @@
+
+install.sh — unit tests
+═══════════════════════
+
+detect_platform:
+  [32m✓[0m Linux x86_64 → linux-x64
+  [32m✓[0m Darwin aarch64 → darwin-arm64
+  [32m✓[0m Linux arm64 → linux-arm64
+
+verify_checksum:
+  [32m✓[0m correct checksum passes
+  [32m✓[0m wrong checksum rejected
+
+download URL construction:
+  [32m✓[0m asset name = kvidai-linux-x64
+  [32m✓[0m download URL contains correct path
+
+symlink helper:
+  [32m✓[0m symlink created in ~/.local/bin
+
+GitHub releases (E2E prerequisite):
+  [32m✓[0m GitHub releases/latest returns 200 — install.sh E2E will work
+
+───────────────────────────────
+  9 passed, 0 failed
+
+**Overall**: PASSED
