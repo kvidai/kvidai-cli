@@ -303,17 +303,17 @@ const ref2vidCmd = defineCommand({
   },
 });
 
-const talkV2vCmd = defineCommand({
+const v2vCmd = defineCommand({
   meta: {
-    name: "talk-v2v",
+    name: "v2v",
     description:
-      "Lipsync video-to-video (input video + prompt → talking video)",
+      "Video-to-video async generation (input video + prompt → transformed video)",
   },
   args: {
     prompt: {
       type: "positional",
       required: true,
-      description: "Speech/lyrics/instruction prompt",
+      description: "Transformation prompt (how to change the video)",
     },
     video: {
       type: "string",
@@ -322,19 +322,111 @@ const talkV2vCmd = defineCommand({
     },
     model: {
       type: "string",
-      description: "Model ID (server default if omitted)",
+      description:
+        "Model fal id (default: alibaba/wan-3.0/reference-to-video). Others: fal-ai/kling-video/o3/pro/video-to-video/reference, bytedance/seedance-2.5/reference-to-video",
     },
-    "negative-prompt": { type: "string", description: "Negative prompt" },
+    duration: {
+      type: "string",
+      description:
+        "Duration in seconds (4-30, default 5) or 'auto' (seedance 2.5)",
+    },
+    resolution: {
+      type: "string",
+      description: "Resolution: 480p, 720p, 1080p (default 720p)",
+    },
+    "aspect-ratio": {
+      type: "string",
+      description:
+        "Aspect ratio (model-dependent, e.g. 16:9/9:16/adaptive/auto)",
+    },
+    seed: {
+      type: "string",
+      description: "Seed for reproducibility (optional)",
+    },
     ...asyncGenArgs,
   },
   async run({ args }) {
     const body: Record<string, unknown> = {
       prompt: args.prompt,
-      function: "talk_v2v",
-      input_video: args.video,
+      input_video_url: args.video,
+      // v2v 는 model 이 필수 (fal id). 미지정 시 wan3 기본.
+      model: args.model || "alibaba/wan-3.0/reference-to-video",
       userEmail: userEmail(),
     };
-    if (args.model) body.model = args.model;
+    if (args.duration)
+      body.duration = args.duration === "auto" ? "auto" : Number(args.duration);
+    if (args.resolution) body.resolution = args.resolution;
+    if (args["aspect-ratio"]) body.aspect_ratio = args["aspect-ratio"];
+    if (args.seed) body.seed = Number(args.seed);
+    await runAsyncGeneration(
+      "v2v",
+      "/ai/generation/video-to-video/generate-async",
+      body,
+      args,
+    );
+  },
+});
+
+const talkV2vCmd = defineCommand({
+  meta: {
+    name: "talk-v2v",
+    description:
+      "Lip-sync (audio + image/video → talking video). Image mode (face photo) or video mode (existing clip).",
+  },
+  args: {
+    prompt: {
+      type: "positional",
+      required: false,
+      description: "Optional subject/scene description",
+    },
+    audio: {
+      type: "string",
+      required: true,
+      description:
+        "Audio (voice) CDN URL to lip-sync to (from `kvidai upload`)",
+    },
+    image: {
+      type: "string",
+      description:
+        "Face image CDN URL — image mode (talk_i2v). Provide --image OR --video",
+    },
+    video: {
+      type: "string",
+      description:
+        "Talking video CDN URL — video mode (talk_v2v). Provide --image OR --video",
+    },
+    model: {
+      type: "string",
+      description:
+        "Image-mode avatar model (default fal-ai/kling-video/ai-avatar/v2/standard; or .../pro, fal-ai/bytedance/omnihuman). Ignored in video mode.",
+    },
+    "negative-prompt": { type: "string", description: "Negative prompt" },
+    ...asyncGenArgs,
+  },
+  async run({ args }) {
+    if (!args.image && !args.video) {
+      error("talk-v2v requires --image (image mode) or --video (video mode)");
+    }
+    if (!args.audio) {
+      error("talk-v2v requires --audio (voice track to lip-sync to)");
+    }
+    const isImageMode = !!args.image && !args.video;
+    const body: Record<string, unknown> = {
+      prompt: args.prompt || "",
+      audio_file: args.audio,
+      userEmail: userEmail(),
+    };
+    if (isImageMode) {
+      // 이미지 립싱크 (talk_i2v): 사진 1장 + 오디오, model = fal avatar id
+      body.image_url = args.image;
+      body.function = "talk_i2v";
+      body.model = args.model || "fal-ai/kling-video/ai-avatar/v2/standard";
+    } else {
+      // 영상 립싱크 (talk_v2v): 입력 영상 + 오디오, model = 'talk' (sync-lipsync)
+      body.input_video = args.video;
+      body.function = "talk_v2v";
+      body.model = "talk";
+    }
     if (args["negative-prompt"]) body.negative_prompt = args["negative-prompt"];
     await runAsyncGeneration(
       "talk-v2v",
@@ -348,13 +440,14 @@ const talkV2vCmd = defineCommand({
 export default defineCommand({
   meta: {
     name: "video",
-    description: "Generate video: agent, t2v, i2v, ref2vid, talk-v2v",
+    description: "Generate video: agent, t2v, i2v, ref2vid, v2v, talk-v2v",
   },
   subCommands: {
     generate: generateCmd,
     t2v: t2vCmd,
     i2v: i2vCmd,
     ref2vid: ref2vidCmd,
+    v2v: v2vCmd,
     "talk-v2v": talkV2vCmd,
   },
 });

@@ -41,7 +41,7 @@ function startCli(): void {
         KVIDAI_BASE_URL:
           "Override the API base URL (default: https://api.kvid.ai)",
         KVIDAI_USER_EMAIL:
-          "User email required for async generation (t2v/i2v/ref2vid/i2i/talk-v2v) and asset upload",
+          "User email required for async generation (t2v/i2v/ref2vid/v2v/i2i/talk-v2v) and asset upload",
       },
       commands: {
         project: {
@@ -84,8 +84,8 @@ function startCli(): void {
         },
         video: {
           description:
-            "Generate video: agent (SSE), t2v, i2v, ref2vid, talk-v2v",
-          usage: "kvidai video <generate|t2v|i2v|ref2vid|talk-v2v> [args]",
+            "Generate video: agent (SSE), t2v, i2v, ref2vid, v2v, talk-v2v",
+          usage: "kvidai video <generate|t2v|i2v|ref2vid|v2v|talk-v2v> [args]",
           subcommands: {
             generate:
               "kvidai video generate <projectId> <message> [--preset-id <id>] [--attachments '<json[]>'] [--cdn-url <url> --mime <type> --filename <name> --size <bytes>] [--verbose]",
@@ -93,8 +93,9 @@ function startCli(): void {
             i2v: "kvidai video i2v <prompt> --image <cdnUrl> [--model <id>] [--negative-prompt <s>] [--wait] [--output <path>]",
             ref2vid:
               "kvidai video ref2vid <prompt> --image <cdnUrl> | --images '<json[]>' [--video <cdnUrl>] [--model <id>] [--wait] [--output <path>]",
+            v2v: "kvidai video v2v <prompt> --video <cdnUrl> [--model <falId>] [--duration <s|auto>] [--resolution <480p|720p|1080p>] [--aspect-ratio <r>] [--wait] [--output <path>]",
             "talk-v2v":
-              "kvidai video talk-v2v <prompt> --video <cdnUrl> [--model <id>] [--negative-prompt <s>] [--wait] [--output <path>]",
+              "kvidai video talk-v2v [prompt] --audio <cdnUrl> (--image <cdnUrl> | --video <cdnUrl>) [--model <falId>] [--wait] [--output <path>]",
           },
         },
         task: {

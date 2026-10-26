@@ -13,18 +13,44 @@ export async function pollStatus(
 ): Promise<unknown> {
   const { intervalMs = 5_000, timeoutMs = 600_000, onTick } = opts;
   const start = Date.now();
+  // status 엔드포인트의 일시적 5xx / 네트워크 blip 은 생성 실패가 아니다 → 연속 N회까지는 재시도.
+  // (4xx 는 wrong jobId 등 terminal 로 즉시 실패.) 생성 잡은 백그라운드에서 계속 돌고 있다.
+  const MAX_TRANSIENT = 5;
+  let transient = 0;
   while (true) {
-    const r = await fetch(
-      `${PLATFORM_BASE}/ai/generation/status?jobId=${encodeURIComponent(jobId)}`,
-      { headers: { "api-key": getApiKey() } },
-    );
-    if (!r.ok) throw new Error(`pollStatus ${r.status}: ${await r.text()}`);
-    const data = await r.json();
-    const status = String(data?.data?.status ?? data?.status ?? "");
-    onTick?.(status);
-    if (/^(completed|done|success|finished)$/i.test(status)) return data;
-    if (/^(failed|error)$/i.test(status)) {
-      throw new Error(`Generation failed: ${JSON.stringify(data)}`);
+    let r: Response | undefined;
+    try {
+      r = await fetch(
+        `${PLATFORM_BASE}/ai/generation/status?jobId=${encodeURIComponent(jobId)}`,
+        { headers: { "api-key": getApiKey() } },
+      );
+    } catch (e) {
+      // 네트워크 오류 — transient
+      if (++transient > MAX_TRANSIENT)
+        throw new Error(
+          `pollStatus network error (${transient}x): ${String(e)}`,
+        );
+    }
+    if (r) {
+      if (r.status >= 500) {
+        // 서버 일시 오류 — transient (status store blip 등)
+        if (++transient > MAX_TRANSIENT)
+          throw new Error(
+            `pollStatus ${r.status} (${transient}x): ${await r.text()}`,
+          );
+      } else if (!r.ok) {
+        // 4xx — terminal (jobId 오류 등)
+        throw new Error(`pollStatus ${r.status}: ${await r.text()}`);
+      } else {
+        transient = 0;
+        const data = await r.json();
+        const status = String(data?.data?.status ?? data?.status ?? "");
+        onTick?.(status);
+        if (/^(completed|done|success|finished)$/i.test(status)) return data;
+        if (/^(failed|error)$/i.test(status)) {
+          throw new Error(`Generation failed: ${JSON.stringify(data)}`);
+        }
+      }
     }
     if (Date.now() - start > timeoutMs) {
       throw new Error(`Timeout after ${timeoutMs / 1000}s`);
