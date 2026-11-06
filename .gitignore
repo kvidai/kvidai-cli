@@ -5,8 +5,6 @@
 
 ### Node ###
 # Logs
-logs
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -145,3 +143,8 @@ dist
 
 # End of https://www.toptal.com/developers/gitignore/api/node
 .vercel
+
+# Runtime logs only (turbo task output, server/agent logs written while running).
+# Retained test evidence is kept as *.log.txt or under results/ and tests/ directories, which these patterns do not match, so it stays addable.
+# Tracked files stay tracked; npm-debug.log* stays ignored above.
+.turbo/
